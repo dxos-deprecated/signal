@@ -2,12 +2,15 @@
 // Copyright 2020 DxOS
 //
 
+const debug = require('debug');
 const { SignalSwarmServer } = require('@geut/discovery-swarm-webrtc/server');
 
-function createServer({ io }) {
-  const signalSwarm = new SignalSwarmServer({ io });
+const error = debug('signal:server:error');
 
+function createServer({ io }) {
   const connections = new Set();
+
+  const signalSwarm = new SignalSwarmServer({ io });
 
   signalSwarm.on('peer:leave', ({ id }) => {
     try {
@@ -17,7 +20,7 @@ function createServer({ io }) {
         }
       });
     } catch (err) {
-      console.error(err);
+      error(err);
     }
   });
 
@@ -26,7 +29,6 @@ function createServer({ io }) {
       const { type, channel, from, to } = request.discoveryData;
 
       const channelStr = channel.toString('hex');
-
       const connectionId = `${channelStr}:${[from.toString('hex'), to.toString('hex')].sort().join(':')}`;
 
       if (type === 'connection') {
@@ -49,7 +51,7 @@ function createServer({ io }) {
         }
       });
     } catch (err) {
-      console.error(err);
+      error(err);
     }
   });
 }

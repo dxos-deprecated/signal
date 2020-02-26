@@ -21,11 +21,11 @@
   "license": "GPL-3.0",
   "main": "index.js",
   "scripts": {
-    "lint": "eslint **/*.js --ignore-path ../../.eslintignore",
-    "start": "PORT=4000 node index.js"
+    "start": "PORT=4000 DEBUG=* node index.js"
   },
   "dependencies": {
     "@geut/discovery-swarm-webrtc": "^2.2.3",
+    "debug": "^4.1.1",
     "socket.io": "^2.2.0"
   },
   "publishConfig": {
