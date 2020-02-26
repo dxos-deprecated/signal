@@ -3,10 +3,22 @@
 //
 
 const debug = require('debug');
-const server = require('http').createServer();
-const io = require('socket.io')(server);
+const { createServer } = require('http');
+const socketIO = require('socket.io');
+const micro = require('micro')
 
-require('./server')({ io });
+const { SignalSwarmServer } = require('@geut/discovery-swarm-webrtc/server');
+
+let signal
+const server = createServer(micro(async (req, res) => {
+  const result = {}
+  signal.channels.forEach((peers, channel) => {
+    result[channel] = Array.from(peers.values())
+  })
+  return result
+}))
+
+signal = new SignalSwarmServer({ io: socketIO(server) });
 
 const port = process.env.PORT || 4000;
 
