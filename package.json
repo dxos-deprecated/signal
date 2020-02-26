@@ -1,0 +1,35 @@
+{
+  "name": "@dxos/signal",
+  "version": "0.1.0",
+  "description": "DxOS signal server.",
+  "homepage": "https://github.com/dxos/signal/tree/master/packages/signal#readme",
+  "bugs": {
+    "url": "https://github.com/dxos/signal/issues"
+  },
+  "bin": {
+    "signal": "bin/signal.js"
+  },
+  "files": [
+    "bin/",
+    "index.js",
+    "server.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dxos/signal.git"
+  },
+  "license": "GPL-3.0",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint **/*.js --ignore-path ../../.eslintignore",
+    "start": "PORT=4000 node index.js"
+  },
+  "dependencies": {
+    "@geut/discovery-swarm-webrtc": "^2.2.3",
+    "socket.io": "^2.2.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "gitHead": "0364698ca71eaf38d892bfc0c6f9b9c7d0f3cb00"
+}
