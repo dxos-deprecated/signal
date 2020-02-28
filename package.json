@@ -21,15 +21,21 @@
   "license": "GPL-3.0",
   "main": "index.js",
   "scripts": {
-    "lint": "eslint **/*.js --ignore-path ../../.eslintignore",
-    "start": "PORT=4000 node index.js"
+    "dev": "nodemon start",
+    "start": "PORT=4000 DEBUG=* node index.js",
+    "test": "curl -s localhost:4000 | jq"
   },
   "dependencies": {
     "@geut/discovery-swarm-webrtc": "^2.2.3",
+    "debug": "^4.1.1",
+    "micro": "^9.3.5-canary.3",
     "socket.io": "^2.2.0"
   },
   "publishConfig": {
     "access": "public"
   },
-  "gitHead": "0364698ca71eaf38d892bfc0c6f9b9c7d0f3cb00"
+  "gitHead": "0364698ca71eaf38d892bfc0c6f9b9c7d0f3cb00",
+  "devDependencies": {
+    "nodemon": "^2.0.2"
+  }
 }
