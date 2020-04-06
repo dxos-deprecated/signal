@@ -1,27 +1,55 @@
-# DxOS Signal Server
+# @dxos/signal
+> DxOS signal server.
+
+[![Build Status](https://travis-ci.com/dxos/signal.svg?branch=master)](https://travis-ci.com/dxos/signal)
+[![Coverage Status](https://coveralls.io/repos/github/dxos/signal/badge.svg?branch=master)](https://coveralls.io/github/dxos/signal?branch=master)
+![npm (scoped)](https://img.shields.io/npm/v/@dxos/signal)
+[![js-semistandard-style](https://img.shields.io/badge/code%20style-semistandard-brightgreen.svg?style=flat-square)](https://github.com/standard/semistandard)
+[![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme)
+
+## Install
+
+```
+$ npm install -g @dxos/signal
+```
 
 ## Usage
 
 ```
-$ PORT=3000 node index.js
+$ signal --help
+
+signal [topic]
+
+start a signal server
+
+Options:
+  --version       Show version number                                  [boolean]
+  --help          Show help                                            [boolean]
+  --topic         topic to find other signal servers [string] [default: "#dxos"]
+  --port, -p      defines a port to listening                    [default: 4000]
+  --repl, -r      start a repl console with your signal                [boolean]
+  --logLevel, -l  defines the log level
+                   [choices: "debug", "info", "warn", "error"] [default: "info"]
 ```
 
+```javascript
+const { createBroker } = require('@dxos/signal')
 
-# Related Technologies
+const topic = randomBytes(32)
 
-## Offers and Answers
-Many peer-to-peer networking protocols use an "offer/answer" scheme for negotiating communication between parties.  For WebRTC, Session Description Protocol (SDP) is used, a technology borrowed from SIP.  The offer/answer phase does not stream any content between the peers, it is exclusively used for conveying information about the peers' networking and capabilities so that direct communication can be successfully established.
+createBroker(topic, opts).start()
+```
 
-## Signals
-The offers and answers have to be transmitted between the parties.  Theoretically they could be conveyed in various forms (email, IM, carrier pigeon), but practically a mutually agreed "signaling server" is used most often.  The signaling server is not used to transmit application data, it only passes the offers and answers between the prospective peers.  For the messages to be passed successfully, the parties must be configured to use the same signaling server.
+## API
 
-## STUN
-Session Traversal Utilities for NAT (STUN) is a protocol for helping clients on separate private networks communicate directly.  A client will send a series of requests to a STUN server in an operation called "binding", and the server will report back to the client the IP address and port of each request as observed by the STUN server--a sort of grander version of the question, 'What is my IP?'  These are collected by the client and added to the offer--or answer--as "candidates" for communication.  There is no need for the parties to use the same STUN server.  A STUN server requires few resources to run, and there are many freely available, public STUN servers.
+...
 
-## TURN
-It is quite possible that none of the candidates discovered by STUN establish successful communication between the parties.  In that case, a Traversal Using Relay around NAT (TURN) server can be used to relay the traffic.  The parties request a "media relay address", which is an IP/port pair on the TURN server itself.  This is added to the list of candidates in the offer or answer, and is signaled to the other party in the usual way.  Communicating via the media relay address on the TURN server proxies application data between the parties.  Proxying all the network traffic is very resource intensive; as result there are few, if any, freely available TURN servers.  As with STUN, it is not necessary that the parties be configured to use the same TURN server.
+## Contributing
 
-## ICE
-Interactive Connectivity Establishment (ICE) is the protocol standardizing the use of STUN and TURN for establishing connection between peers.  It is often used as a general term describing this suite of protocols for P2P communication.
+PRs accepted.
 
-https://en.wikipedia.org/wiki/Interactive_Connectivity_Establishment
+## License
+
+GPL-3.0 © dxos
+
+# DxOS Signal Server

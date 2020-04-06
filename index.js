@@ -1,41 +1,60 @@
 //
-// Copyright 2020 DxOS
+// Copyright 2020 DxOS.
 //
 
-const debug = require('debug');
-const { createServer } = require('http');
-const micro = require('micro');
-const socketIO = require('socket.io');
+const assert = require('assert');
+const { ServiceBroker } = require('moleculer');
+const { keyPair: createKeyPair } = require('hypercore-crypto');
 
-const { SignalSwarmServer } = require('@geut/discovery-swarm-webrtc/server');
+const { PeerMap } = require('./lib/peer-map.js');
+const { ProtocolTransporter } = require('./lib/protocol-transporter');
+const { Serializer } = require('./lib/serializer');
 
-const { version } = require('./package.json');
+// Services
+const { GatewayService } = require('./lib/gateway.service');
+const { DiscoveryService } = require('./lib/discovery.service');
 
-const port = process.env.PORT || 4000;
+function createBroker (topic, opts = {}) {
+  assert(Buffer.isBuffer(topic) && topic.length === 32, 'topic is required and must be a buffer of 32 bytes');
 
-const log = debug('signal');
-const error = debug('signal:error');
+  const { logLevel, repl = false, keyPair = createKeyPair(), hyperswarm, port = process.env.PORT || 4000 } = opts;
 
-let signal;
+  const peerMap = new PeerMap();
 
-const server = createServer(micro(async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const broker = new ServiceBroker({
+    nodeID: keyPair.publicKey.toString('hex'),
+    logLevel,
+    repl,
+    transporter: new ProtocolTransporter({
+      key: topic,
+      hyperswarm
+    }),
+    serializer: new Serializer(),
+    metadata: {
+      port,
+      version: require('./package.json').version
+    },
+    created (broker) {
+      broker.context = {
+        keyPair,
+        peerMap
+      };
+    },
+    started (broker) {
+      if (repl) {
+        return broker.repl();
+      }
+    },
+    errorHandler (err, info) {
+      // Handle the error
+      this.logger.warn('Global error handled:', err);
+    }
+  });
 
-  return {
-    channels: Array.from(signal.channels.keys()).map(channel => ({
-      channel,
-      peers: Array.from(signal.channels.get(channel).values())
-    })),
-    version
-  };
-}));
+  broker.createService(GatewayService);
+  broker.createService(DiscoveryService);
 
-signal = new SignalSwarmServer({ io: socketIO(server) });
+  return broker;
+}
 
-process.on('unhandledRejection', (err) => {
-  error(`Unhandled: ${err.message}`);
-});
-
-server.listen(port, () => {
-  log(`discovery-signal-webrtc running on ${port}`);
-});
+module.exports = { createBroker };

@@ -2,40 +2,62 @@
   "name": "@dxos/signal",
   "version": "0.1.0",
   "description": "DxOS signal server.",
-  "homepage": "https://github.com/dxos/signal/tree/master/packages/signal#readme",
+  "homepage": "https://github.com/dxos/signal#readme",
   "bugs": {
     "url": "https://github.com/dxos/signal/issues"
   },
-  "bin": {
-    "signal": "bin/signal.js"
-  },
-  "files": [
-    "bin/",
-    "index.js",
-    "server.js"
-  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dxos/signal.git"
   },
   "license": "GPL-3.0",
+  "bin": {
+    "signal": "bin/signal.js"
+  },
+  "files": [
+    "bin",
+    "lib",
+    "index.js"
+  ],
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon start",
-    "start": "PORT=4000 DEBUG=* node index.js",
-    "test": "curl -s localhost:4000 | jq"
+    "coverage": "npm test -- --coverage",
+    "coveralls": "npm run coverage && cat ./coverage/lcov.info | coveralls",
+    "lint": "semistandard '**/*.js'",
+    "prepublishOnly": "npm run test",
+    "test": "jest --verbose --passWithNoTests",
+    "posttest": "npm run lint"
+  },
+  "jest": {
+    "testEnvironment": "node"
   },
   "dependencies": {
-    "@geut/discovery-swarm-webrtc": "^2.2.3",
-    "debug": "^4.1.1",
-    "micro": "^9.3.5-canary.3",
-    "socket.io": "^2.2.0"
+    "@dxos/protocol": "^1.1.0-alpha.2",
+    "@dxos/protocol-plugin-messenger": "^1.1.0-alpha.2",
+    "buffer-json-encoding": "^1.0.2",
+    "hypercore-crypto": "^1.0.0",
+    "hyperswarm": "^2.10.1",
+    "moleculer": "^0.14.5",
+    "moleculer-repl": "^0.6.3",
+    "moleculer-web": "^0.9.1",
+    "pump": "^3.0.0",
+    "simple-websocket": "^8.1.1",
+    "socket-signal": "^1.0.12",
+    "yargs": "^15.3.1"
+  },
+  "devDependencies": {
+    "jest": "^25.2.7",
+    "p-event": "^4.1.0",
+    "semistandard": "^14.2.0"
   },
   "publishConfig": {
     "access": "public"
   },
-  "gitHead": "0364698ca71eaf38d892bfc0c6f9b9c7d0f3cb00",
-  "devDependencies": {
-    "nodemon": "^2.0.2"
+  "semistandard": {
+    "env": [
+      "jest",
+      "node",
+      "browser"
+    ]
   }
 }
