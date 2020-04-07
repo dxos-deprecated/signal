@@ -11,7 +11,7 @@ const { ProtocolTransporter } = require('./lib/protocol-transporter');
 const { Serializer } = require('./lib/serializer');
 
 // Services
-const { GatewayService } = require('./lib/gateway.service');
+const { SignalService } = require('./lib/signal.service');
 const { DiscoveryService } = require('./lib/discovery.service');
 
 function createBroker (topic, opts = {}) {
@@ -51,7 +51,7 @@ function createBroker (topic, opts = {}) {
     }
   });
 
-  broker.createService(GatewayService);
+  broker.createService(SignalService);
   broker.createService(DiscoveryService);
 
   return broker;
