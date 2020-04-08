@@ -21,6 +21,11 @@ yargs
       describe: 'defines a port to listening',
       default: 4000
     },
+    bootstrap: {
+      alias: 'b',
+      describe: 'defines a list of bootstrap nodes',
+      type: 'array'
+    },
     repl: {
       alias: 'r',
       describe: 'start a repl console with your signal',
@@ -37,7 +42,14 @@ yargs
       .update(argv.topic)
       .digest();
 
-    createBroker(topic, argv).start();
+    createBroker(topic, {
+      port: argv.port,
+      hyperswarm: {
+        bootstrap: argv.bootstrap
+      },
+      repl: argv.repl,
+      logLevel: argv.logLevel
+    }).start();
   })
   .help()
   .parse();

@@ -23,12 +23,13 @@ signal [topic]
 start a signal server
 
 Options:
-  --version       Show version number                                  [boolean]
-  --help          Show help                                            [boolean]
-  --topic         topic to find other signal servers [string] [default: "#dxos"]
-  --port, -p      defines a port to listening                    [default: 4000]
-  --repl, -r      start a repl console with your signal                [boolean]
-  --logLevel, -l  defines the log level
+  --version        Show version number                                 [boolean]
+  --help           Show help                                           [boolean]
+  --topic          topic to find other signal servers[string] [default: "#dxos"]
+  --port, -p       defines a port to listening                   [default: 4000]
+  --bootstrap, -b  defines a list of bootstrap nodes                     [array]
+  --repl, -r       start a repl console with your signal               [boolean]
+  --logLevel, -l   defines the log level
                    [choices: "debug", "info", "warn", "error"] [default: "info"]
 ```
 
