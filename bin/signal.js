@@ -26,6 +26,11 @@ yargs
       describe: 'defines a list of bootstrap nodes',
       type: 'array'
     },
+    asBootstrap: {
+      describe: 'enable the signal as a bootstrap node',
+      type: 'boolean',
+      default: false
+    },
     repl: {
       alias: 'r',
       describe: 'start a repl console with your signal',
@@ -56,6 +61,7 @@ yargs
       hyperswarm: {
         bootstrap: argv.bootstrap
       },
+      asBootstrap: argv.asBootstrap,
       repl: argv.repl,
       logLevel: argv.logLevel,
       logFormat: argv.logFormat,

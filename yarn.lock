@@ -268,7 +268,7 @@
     signal-promise "^1.0.3"
     source-map-support "^0.5.12"
 
-"@hyperswarm/dht@^3.2.0":
+"@hyperswarm/dht@^3.2.0", "@hyperswarm/dht@^3.5.2":
   version "3.5.2"
   resolved "https://registry.yarnpkg.com/@hyperswarm/dht/-/dht-3.5.2.tgz#d59d770156d6c6eb542c60bd8b7dfe13f1a0b43e"
   integrity sha512-WMea24RGEDIZYv48rJw60OKaqxER282WmdmbT+CRe7IimNQIZruYLly0lgnC9ZJhhup0WpFSmeh0m6ZEmnMVkg==

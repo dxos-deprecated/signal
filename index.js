@@ -21,6 +21,7 @@ function createBroker (topic, opts = {}) {
     port = process.env.PORT || 4000,
     keyPair = createKeyPair(),
     hyperswarm,
+    asBootstrap = false,
     repl = false,
     logLevel,
     logFormat = 'full',
@@ -52,7 +53,8 @@ function createBroker (topic, opts = {}) {
     repl,
     transporter: new ProtocolTransporter({
       key: topic,
-      hyperswarm
+      hyperswarm,
+      asBootstrap
     }),
     serializer: new Serializer(),
     metadata: {
