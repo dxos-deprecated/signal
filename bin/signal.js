@@ -36,6 +36,10 @@ yargs
       describe: 'defines the log level',
       default: 'info',
       choices: ['debug', 'info', 'warn', 'error']
+    },
+    logDir: {
+      describe: 'defines a log directory',
+      type: 'string'
     }
   }, (argv) => {
     const topic = crypto.createHash('sha256')
@@ -48,7 +52,8 @@ yargs
         bootstrap: argv.bootstrap
       },
       repl: argv.repl,
-      logLevel: argv.logLevel
+      logLevel: argv.logLevel,
+      logDir: argv.logDir
     }).start();
   })
   .help()

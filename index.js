@@ -17,12 +17,25 @@ const { DiscoveryService } = require('./lib/discovery.service');
 function createBroker (topic, opts = {}) {
   assert(Buffer.isBuffer(topic) && topic.length === 32, 'topic is required and must be a buffer of 32 bytes');
 
-  const { logLevel, repl = false, keyPair = createKeyPair(), hyperswarm, port = process.env.PORT || 4000 } = opts;
+  const { logLevel, repl = false, keyPair = createKeyPair(), hyperswarm, port = process.env.PORT || 4000, logDir } = opts;
+
+  let logger = true;
+  if (logDir) {
+    logger = {
+      type: 'File',
+      options: {
+        folder: logDir,
+        filename: 'dxos-signal-{nodeID}-{date}.log',
+        formatter: 'json'
+      }
+    };
+  }
 
   const peerMap = new PeerMap();
 
   const broker = new ServiceBroker({
     nodeID: keyPair.publicKey.toString('hex'),
+    logger,
     logLevel,
     repl,
     transporter: new ProtocolTransporter({
