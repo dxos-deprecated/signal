@@ -37,6 +37,11 @@ yargs
       default: 'info',
       choices: ['debug', 'info', 'warn', 'error']
     },
+    logFormat: {
+      describe: 'defines the log format',
+      default: 'full',
+      choices: ['full', 'short', 'simple', 'json']
+    },
     logDir: {
       describe: 'defines a log directory',
       type: 'string'
@@ -53,6 +58,7 @@ yargs
       },
       repl: argv.repl,
       logLevel: argv.logLevel,
+      logFormat: argv.logFormat,
       logDir: argv.logDir
     }).start();
   })
