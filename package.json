@@ -12,6 +12,7 @@
   },
   "license": "GPL-3.0",
   "bin": {
+    "dxos-signal": "bin/signal.js",
     "signal": "bin/signal.js"
   },
   "files": [
