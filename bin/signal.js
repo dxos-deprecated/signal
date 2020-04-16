@@ -10,7 +10,7 @@ const yargs = require('yargs');
 const { createBroker } = require('../index.js');
 
 yargs
-  .command('$0 [topic]', 'start a signal server', {
+  .command('$0', 'start a signal server', {
     topic: {
       describe: 'topic to find other signal servers',
       default: '#dxos',
