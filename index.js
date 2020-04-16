@@ -3,6 +3,8 @@
 //
 
 const assert = require('assert');
+const crypto = require('crypto');
+
 const { ServiceBroker } = require('moleculer');
 const { keyPair: createKeyPair } = require('hypercore-crypto');
 
@@ -14,8 +16,14 @@ const { Serializer } = require('./lib/serializer');
 const { SignalService } = require('./lib/signal.service');
 const { DiscoveryService } = require('./lib/discovery.service');
 
+const SIGNAL_PROTOCOL_VERSION = 2;
+
 function createBroker (topic, opts = {}) {
   assert(Buffer.isBuffer(topic) && topic.length === 32, 'topic is required and must be a buffer of 32 bytes');
+
+  topic = crypto.createHash('sha256')
+    .update(topic.toString('hex') + SIGNAL_PROTOCOL_VERSION)
+    .digest();
 
   const {
     port = process.env.PORT || 4000,
@@ -68,6 +76,9 @@ function createBroker (topic, opts = {}) {
       };
     },
     started (broker) {
+      broker.logger.info('SIGNAL_PROTOCOL_VERSION:', SIGNAL_PROTOCOL_VERSION);
+      broker.logger.info('SIGNAL_PROTOCOL_TOPIC:', topic.toString('hex'));
+
       if (repl) {
         return broker.repl();
       }
@@ -84,4 +95,4 @@ function createBroker (topic, opts = {}) {
   return broker;
 }
 
-module.exports = { createBroker };
+module.exports = { createBroker, SIGNAL_PROTOCOL_VERSION };
