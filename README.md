@@ -28,9 +28,14 @@ Options:
   --topic          topic to find other signal servers[string] [default: "#dxos"]
   --port, -p       defines a port to listening                   [default: 4000]
   --bootstrap, -b  defines a list of bootstrap nodes                     [array]
+  --asBootstrap    enable the signal as a bootstrap node
+                                                      [boolean] [default: false]
   --repl, -r       start a repl console with your signal               [boolean]
   --logLevel, -l   defines the log level
                    [choices: "debug", "info", "warn", "error"] [default: "info"]
+  --logFormat      defines the log format
+                  [choices: "full", "short", "simple", "json"] [default: "full"]
+  --logDir         defines a log directory                              [string]
 ```
 
 ```javascript
