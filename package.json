@@ -42,6 +42,7 @@
     "moleculer": "^0.14.5",
     "moleculer-repl": "^0.6.3",
     "moleculer-web": "^0.9.1",
+    "p-event": "^4.1.0",
     "pump": "^3.0.0",
     "simple-websocket": "^8.1.1",
     "socket-signal": "^1.0.12",
@@ -49,7 +50,6 @@
   },
   "devDependencies": {
     "jest": "^25.2.7",
-    "p-event": "^4.1.0",
     "semistandard": "^14.2.0"
   },
   "publishConfig": {

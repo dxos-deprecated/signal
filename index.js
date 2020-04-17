@@ -62,7 +62,7 @@ function createBroker (topic, opts = {}) {
     transporter: new ProtocolTransporter({
       key: topic,
       hyperswarm,
-      asBootstrap
+      asBootstrap: asBootstrap ? port : false
     }),
     serializer: new Serializer(),
     metadata: {
