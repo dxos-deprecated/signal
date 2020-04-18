@@ -60,10 +60,10 @@ function createBroker (topic, opts = {}) {
     logLevel,
     repl,
     transporter: new ProtocolTransporter({
-      port: port + 1,
       key: topic,
       hyperswarm,
-      asBootstrap
+      asBootstrap,
+      bootstrapPort: port
     }),
     serializer: new Serializer(),
     metadata: {
