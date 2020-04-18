@@ -24,7 +24,7 @@ yargs
     bootstrap: {
       alias: 'b',
       describe: 'defines a list of bootstrap nodes',
-      type: 'array'
+      type: 'string'
     },
     asBootstrap: {
       describe: 'enable the signal as a bootstrap node',
@@ -59,7 +59,7 @@ yargs
     createBroker(topic, {
       port: argv.port,
       hyperswarm: {
-        bootstrap: argv.bootstrap
+        bootstrap: argv.bootstrap.split(',')
       },
       asBootstrap: argv.asBootstrap,
       repl: argv.repl,
