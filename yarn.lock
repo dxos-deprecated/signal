@@ -268,7 +268,7 @@
     signal-promise "^1.0.3"
     source-map-support "^0.5.12"
 
-"@hyperswarm/dht@^3.2.0", "@hyperswarm/dht@^3.5.2":
+"@hyperswarm/dht@^3.2.0":
   version "3.5.2"
   resolved "https://registry.yarnpkg.com/@hyperswarm/dht/-/dht-3.5.2.tgz#d59d770156d6c6eb542c60bd8b7dfe13f1a0b43e"
   integrity sha512-WMea24RGEDIZYv48rJw60OKaqxER282WmdmbT+CRe7IimNQIZruYLly0lgnC9ZJhhup0WpFSmeh0m6ZEmnMVkg==
@@ -277,6 +277,21 @@
     dht-rpc "^4.7.0"
     end-of-stream "^1.4.1"
     guard-timeout "^1.0.0"
+    hashlru "^2.3.0"
+    protocol-buffers-encodings "^1.1.0"
+    record-cache "^1.1.0"
+    sodium-universal "^2.0.0"
+    uint64be "^2.0.2"
+
+"@hyperswarm/dht@^3.6.1":
+  version "3.6.2"
+  resolved "https://registry.yarnpkg.com/@hyperswarm/dht/-/dht-3.6.2.tgz#9f90eb1c81d348d17585b638acbec278ea610ac3"
+  integrity sha512-mqKg6TgnOpQ+C8I6CYEPw3TPek4ORdsUhQzEuNIKm7SMB+3zQd8f6rkjmzDIM0IRFnGwZ2NcdCtvuYWFlXUTYg==
+  dependencies:
+    "@hyperswarm/hypersign" "^2.0.0"
+    dht-rpc "^4.8.0"
+    end-of-stream "^1.4.1"
+    guard-timeout "^2.0.0"
     hashlru "^2.3.0"
     protocol-buffers-encodings "^1.1.0"
     record-cache "^1.1.0"
@@ -1544,6 +1559,21 @@ dht-rpc@^4.7.0:
     time-ordered-set "^1.0.1"
     xor-distance "^2.0.0"
 
+dht-rpc@^4.8.0:
+  version "4.8.0"
+  resolved "https://registry.yarnpkg.com/dht-rpc/-/dht-rpc-4.8.0.tgz#7cae645132705dda62f67249e941531adc7e0037"
+  integrity sha512-vBu9sb3AUbkOfCa6lFHj9QxUJ7yAWD/ZNHSyLnRmEjKsQxkMF8tyvgso+3at2pOFIZk8LJN5maO1IWYn8B2jJA==
+  dependencies:
+    codecs "^2.0.0"
+    ipv4-peers "^2.0.0"
+    k-bucket "^5.0.0"
+    protocol-buffers-encodings "^1.1.0"
+    sodium-universal "^2.0.0"
+    speedometer "^1.1.0"
+    stream-collector "^1.0.1"
+    time-ordered-set "^1.0.1"
+    xor-distance "^2.0.0"
+
 dicer@0.3.0:
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/dicer/-/dicer-0.3.0.tgz#eacd98b3bfbf92e8ab5c2fdb71aaac44bb06b872"
@@ -2394,6 +2424,11 @@ guard-timeout@^1.0.0:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/guard-timeout/-/guard-timeout-1.0.2.tgz#74f04554d59c98be32b6242c7e7172a9092bdede"
   integrity sha512-pHBSeiEgAFMhZP3dycr5Fgs3NBnuyeELDYhUez9Nd6UDnMp/qkSr3xsXcjx9upfOozGZaassJtgv7nrqwXBlyA==
+
+guard-timeout@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/guard-timeout/-/guard-timeout-2.0.0.tgz#7f8f1f6d09bdeb6d0fee4cbd743d593c14d7d78a"
+  integrity sha512-35geHv72oal0cRUE5t1tZ5KHm3OVPXzFtiMG8AnRPV5FkkEf84RUpeQ0BCeCZunfSLGATW5ZVyALhJKgM7I/6A==
 
 har-schema@^2.0.0:
   version "2.0.0"
