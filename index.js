@@ -96,4 +96,4 @@ function createBroker (topic, opts = {}) {
   return broker;
 }
 
-module.exports = { createBroker, SIGNAL_PROTOCOL_VERSION };
+module.exports = { createBroker, SIGNAL_PROTOCOL_VERSION, ProtocolTransporter };
