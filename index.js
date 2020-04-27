@@ -52,7 +52,7 @@ function createBroker (topic, opts = {}) {
     };
   }
 
-  const peerMap = new PeerMap();
+  const peerMap = new PeerMap(keyPair.publicKey);
 
   const broker = new ServiceBroker({
     nodeID: keyPair.publicKey.toString('hex'),
@@ -86,7 +86,12 @@ function createBroker (topic, opts = {}) {
     },
     errorHandler (err, info) {
       // Handle the error
-      this.logger.warn('Global error handled:', err);
+      if (err.code) {
+        // ignore webrtc peer errors
+        this.logger.debug('GLOBAL_ERROR:', err);
+        return;
+      }
+      this.logger.warn('GLOBAL_ERROR:', err);
     }
   });
 
