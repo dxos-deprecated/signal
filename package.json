@@ -33,8 +33,8 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@dxos/protocol": "^1.1.0-beta.1",
-    "@dxos/protocol-plugin-messenger": "^1.1.0-beta.1",
+    "@dxos/protocol": "^1.1.0-beta.2",
+    "@dxos/protocol-plugin-messenger": "^1.1.0-beta.2",
     "@hyperswarm/dht": "^3.6.1",
     "buffer-json-encoding": "^1.0.2",
     "hypercore-crypto": "^1.0.0",

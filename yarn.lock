@@ -265,10 +265,10 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
-"@dxos/broadcast@^1.0.0-beta.3":
-  version "1.0.0-beta.3"
-  resolved "https://registry.yarnpkg.com/@dxos/broadcast/-/broadcast-1.0.0-beta.3.tgz#2d17fa1d27349b89b5d948a9e053b0e069397e1f"
-  integrity sha512-zY9s9FK2p31I6Cgh2WF2E/4oDtJgywWY1sdP78wkUin+MjiGxtx4dgFsLwjUe4gAa3YsVpCvQSfg8SFB3xKJSQ==
+"@dxos/broadcast@^1.0.0-beta.4":
+  version "1.0.0-beta.4"
+  resolved "https://registry.yarnpkg.com/@dxos/broadcast/-/broadcast-1.0.0-beta.4.tgz#fda9a5a0f0fbeb99ba2631488221351b33c0414b"
+  integrity sha512-kOtvp3TwXJxYA1Y8ckkYPsM7nfC6CRc9fXJtbO/YJwM6jItkcEWlPNlyOTbPHTbO5fgQfSEu7/ZSQ6YPEioW2Q==
   dependencies:
     "@dxos/codec-protobuf" "^1.1.0-beta.2"
     debug "^4.1.1"
@@ -285,21 +285,21 @@
     protobufjs "https://github.com/protobufjs/protobuf.js"
     source-map-support "^0.5.12"
 
-"@dxos/protocol-plugin-messenger@^1.1.0-beta.1":
-  version "1.1.0-beta.1"
-  resolved "https://registry.yarnpkg.com/@dxos/protocol-plugin-messenger/-/protocol-plugin-messenger-1.1.0-beta.1.tgz#b29b0ff08aab2fb9767a9424636d40685c5c5a93"
-  integrity sha512-mkR10TzNY264XIU5SlWLBviDhIzOjNYKC0GEfDu8DQNds4mrcDuZ1Hd3Fb1mG8rEhnkexji8WloR3IOMBQZZug==
+"@dxos/protocol-plugin-messenger@^1.1.0-beta.2":
+  version "1.1.0-beta.2"
+  resolved "https://registry.yarnpkg.com/@dxos/protocol-plugin-messenger/-/protocol-plugin-messenger-1.1.0-beta.2.tgz#feca9475834d14c82966702618d7684e72a570d9"
+  integrity sha512-UYH74mTm5IcDV61ZCFdcxLyPDeV/fw9FOB/4qjuv8TJaLq5RHeWetSApH7bHZqN+f3dS3zpJK//cfQMwIKIcEg==
   dependencies:
-    "@dxos/broadcast" "^1.0.0-beta.3"
+    "@dxos/broadcast" "^1.0.0-beta.4"
     "@dxos/codec-protobuf" "^1.1.0-beta.9"
-    "@dxos/protocol" "^1.1.0-beta.1"
+    "@dxos/protocol" "^1.1.0-beta.2"
     debug "^4.1.1"
     source-map-support "^0.5.12"
 
-"@dxos/protocol@^1.1.0-beta.1":
-  version "1.1.0-beta.1"
-  resolved "https://registry.yarnpkg.com/@dxos/protocol/-/protocol-1.1.0-beta.1.tgz#877160537e85a6dfea6b4b4ebcd14cce6f085c7c"
-  integrity sha512-ZBHOLUmRL7ACKqS1SNbIKzVnD9yJ3/20/1nJf9u1W/kvBJjdF7h4kDz/vZ/seqdT8XV0tGL9B5dMTeNES8zg2w==
+"@dxos/protocol@^1.1.0-beta.2":
+  version "1.1.0-beta.2"
+  resolved "https://registry.yarnpkg.com/@dxos/protocol/-/protocol-1.1.0-beta.2.tgz#f68c95521a3f503ba0d3e8d30a53fe896647b814"
+  integrity sha512-N9VdpIbRDREzgomUS9jh1Dk6hVFSBatsIQJoJ3yv4AbuB7th9FJ27IGES3St5vn8jhAk6wiEAXAi1ObwqdzveQ==
   dependencies:
     "@dxos/codec-protobuf" "^1.1.0-beta.9"
     assert "^2.0.0"
