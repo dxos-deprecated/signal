@@ -6,7 +6,6 @@ const assert = require('assert');
 const crypto = require('crypto');
 
 const { ServiceBroker } = require('moleculer');
-const { keyPair: createKeyPair } = require('hypercore-crypto');
 
 const { PeerMap } = require('./lib/peer-map.js');
 const { ProtocolTransporter } = require('./lib/protocol-transporter');
@@ -27,7 +26,7 @@ function createBroker (topic, opts = {}) {
 
   const {
     port = process.env.PORT || 4000,
-    keyPair = createKeyPair(),
+    keyPair = ProtocolTransporter.keyPair(),
     hyperswarm,
     asBootstrap = false,
     repl = false,
