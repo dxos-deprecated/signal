@@ -33,7 +33,7 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@dxos/broadcast": "^1.0.0-beta.9",
+    "@dxos/broadcast": "^1.0.0-beta.10",
     "@hyperswarm/dht": "^3.6.1",
     "buffer-json-encoding": "^1.0.2",
     "end-of-stream": "^1.4.4",

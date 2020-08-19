@@ -271,16 +271,16 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
-"@dxos/broadcast@^1.0.0-beta.9":
-  version "1.0.0-beta.9"
-  resolved "https://registry.yarnpkg.com/@dxos/broadcast/-/broadcast-1.0.0-beta.9.tgz#1114fd1efe403627050acb115b89ebde0b1c6f45"
-  integrity sha512-gIRIolLx2yPwhVdeyqJ9qGI2PsGHxH0TRoOTe03GMpnMhSfSybcjzNgSio38uLgATIi7bq9CA00Hw6grWpb1Sg==
+"@dxos/broadcast@^1.0.0-beta.10":
+  version "1.0.0-beta.10"
+  resolved "https://registry.yarnpkg.com/@dxos/broadcast/-/broadcast-1.0.0-beta.10.tgz#a4590aacd36f3e91bfd1b4aee5f964bb68206e32"
+  integrity sha512-XBG/vjNErXw15kEf8pjEVgGO4Fk6gB6Y4cE6KUdmAqLvGV7zBZgN/h4CsLrTIqfBhssesoenRPf9yxhBEQJi+w==
   dependencies:
     "@dxos/codec-protobuf" "^1.1.0-beta.2"
     debug "^4.1.1"
-    lru "^3.1.0"
     nanoresource-promise "^2.0.0"
     source-map-support "^0.5.12"
+    tiny-lru "^7.0.6"
 
 "@dxos/codec-protobuf@^1.1.0-beta.2":
   version "1.1.0-beta.11"
@@ -5688,6 +5688,11 @@ tiny-human-time@^1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/tiny-human-time/-/tiny-human-time-1.2.0.tgz#0c4a425940e053e2d31d903d6f03d38cfb977860"
   integrity sha1-DEpCWUDgU+LTHZA9bwPTjPuXeGA=
+
+tiny-lru@^7.0.6:
+  version "7.0.6"
+  resolved "https://registry.yarnpkg.com/tiny-lru/-/tiny-lru-7.0.6.tgz#b0c3cdede1e5882aa2d1ae21cb2ceccf2a331f24"
+  integrity sha512-zNYO0Kvgn5rXzWpL0y3RS09sMK67eGaQj9805jlK9G6pSadfriTczzLHFXa/xcW4mIRfmlB9HyQ/+SgL0V1uow==
 
 tmp@^0.0.33:
   version "0.0.33"
