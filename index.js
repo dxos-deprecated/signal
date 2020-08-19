@@ -15,7 +15,7 @@ const { Serializer } = require('./lib/serializer');
 const { SignalService } = require('./lib/signal.service');
 const { DiscoveryService } = require('./lib/discovery.service');
 
-const SIGNAL_PROTOCOL_VERSION = 3;
+const SIGNAL_PROTOCOL_VERSION = 4;
 
 function createBroker (topic, opts = {}) {
   assert(Buffer.isBuffer(topic) && topic.length === 32, 'topic is required and must be a buffer of 32 bytes');
