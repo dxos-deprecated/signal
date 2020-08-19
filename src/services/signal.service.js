@@ -4,7 +4,7 @@
 
 const WebService = require('moleculer-web');
 
-const { SignalServer } = require('./signal-server');
+const { SignalServer } = require('../signal-server');
 
 exports.SignalService = {
   name: 'signal',
