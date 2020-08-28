@@ -11,79 +11,70 @@ exports.DiscoveryService = {
     '$node.disconnected' (ctx) {
       const { peerMap } = this.broker.context;
 
-      peerMap.deleteAllByRoot(Buffer.from(ctx.params.node.id, 'hex'));
+      peerMap.deletePeersByOwner(Buffer.from(ctx.params.node.id, 'hex'));
     },
-    '$node.connected' (ctx) {
+    '$node.connected' () {
       const { peerMap } = this.broker.context;
+      const owner = Buffer.from(this.broker.nodeID, 'hex');
+      const peers = peerMap
+        .peers
+        .filter(p => p.owner.equals(owner))
+        .map(peerMap.encode);
 
-      ctx.call('discovery.update', {
-        rootPeers: peerMap.getRootPeers(Buffer.from(this.broker.nodeID, 'hex'))
-      }, { nodeID: ctx.params.node.id }).catch(err => {
-        this.broker.logger.error('Error on $node.connected -> discovery.update', err);
-      });
+      if (peers.length === 0) return;
+      return this.broker.broadcast('discovery.update', { peers }).catch(() => {});
+    },
+    'discovery.update' (ctx) {
+      const { peerMap } = this.broker.context;
+      const { peers } = ctx.params;
+
+      if (ctx.nodeID === this.broker.nodeID) {
+        this.broker.broadcastLocal('$discovery.update');
+        return;
+      }
+
+      peerMap.updatePeersByOwner(Buffer.from(ctx.nodeID, 'hex'), peers.map(peerMap.decode));
+      this.broker.broadcastLocal('$discovery.update');
     }
   },
   actions: {
-    update: {
-      params: {
-        rootPeers: {
-          type: 'array',
-          items: {
-            type: 'object',
-            props: {
-              topic: { type: 'object' }, // buffer objects
-              peers: { type: 'array', items: 'object' } // buffer objects
-            }
-          }
-        }
-      },
-      handler (ctx) {
-        const { peerMap } = this.broker.context;
-
-        peerMap.updateRootPeers(Buffer.from(ctx.nodeID, 'hex'), ctx.params.rootPeers);
-      }
-    },
     offer (ctx) {
       this.logger.debug('offer', ctx.params);
 
       const { peerMap } = this.broker.context;
+      const { remoteId } = ctx.params;
 
-      const rpc = peerMap.findRPC(ctx.params.remoteId);
-      if (!rpc) throw new Error('rpc not found');
+      const peer = peerMap.peers.find(p => p.id.equals(remoteId) && p.rpc);
+      if (!peer) throw new Error('rpc not found');
 
-      return rpc.call('offer', ctx.params);
+      return peer.rpc.call('offer', ctx.params);
     },
-    candidates (ctx) {
-      this.logger.debug('candidates', ctx.params);
+    signal (ctx) {
+      this.logger.debug('signal', ctx.params);
 
       const { peerMap } = this.broker.context;
+      const { remoteId } = ctx.params;
 
-      const rpc = peerMap.findRPC(ctx.params.remoteId);
-      if (!rpc) throw new Error('rpc not found');
+      const peer = peerMap.peers.find(p => p.id.equals(remoteId) && p.rpc);
+      if (!peer) throw new Error('rpc not found');
 
-      return rpc.emit('candidates', ctx.params);
+      return peer.rpc.emit('signal', ctx.params);
     }
   },
   created () {
     const { peerMap } = this.broker.context;
+    const owner = Buffer.from(this.broker.nodeID, 'hex');
 
     this._limit = pLimit(1);
 
     this._updatePeers = debounce(() => {
       this._limit(() => {
         this._limit.clearQueue();
-
-        const nodes = this
-          .broker
-          .registry
-          .getNodeList({ onlyAvailable: true, withServices: true })
-          .filter(node => node.id !== this.broker.nodeID);
-
-        const rootPeers = peerMap.getRootPeers(Buffer.from(this.broker.nodeID, 'hex'));
-
-        return Promise.all(nodes.map(node =>
-          this.broker.call('discovery.update', { rootPeers }, { nodeID: node.id }).catch(() => {})
-        ));
+        const peers = peerMap
+          .peers
+          .filter(p => p.owner.equals(owner))
+          .map(peerMap.encode);
+        return this.broker.broadcast('discovery.update', { peers }).catch(() => {});
       }).catch(() => {});
     }, 1000);
   },

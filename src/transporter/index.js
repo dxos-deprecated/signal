@@ -32,7 +32,6 @@ class ProtocolTransporter extends BaseTransporter {
     this._hyperswarmOptions = hyperswarm;
     this._messenger = new Messenger(this._topic, this._keyPair);
 
-    this._peers = new Map();
     this._ee = new EventEmitter();
     this._nanomessage = null;
     this._swarm = null;
@@ -51,7 +50,7 @@ class ProtocolTransporter extends BaseTransporter {
   }
 
   get onlyLocal () {
-    return this._peers.size === 0;
+    return this._messenger.peers.length === 0;
   }
 
   waitForConnected () {
@@ -94,7 +93,7 @@ class ProtocolTransporter extends BaseTransporter {
 
     await this._messenger.open();
 
-    return new this.broker.Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const onError = (err) => {
         this.logger.error('ProtocolTransporter error', err.message);
         reject(err);
@@ -114,17 +113,14 @@ class ProtocolTransporter extends BaseTransporter {
     });
   }
 
-  disconnect () {
-    if (this._swarm) {
-      this._swarm.destroy();
-
-      this._peers.forEach((info, protocol) => {
-        protocol.stream.destroy();
-      });
+  async disconnect () {
+    if (this._bootstrapNode) {
+      await this._bootstrapNode.stop();
     }
 
-    if (this._bootstrapNode) {
-      this._bootstrapNode.stop();
+    if (this._swarm) {
+      await new Promise(resolve => this._swarm.destroy(() => resolve()));
+      await this._messenger.close();
     }
   }
 
@@ -133,7 +129,7 @@ class ProtocolTransporter extends BaseTransporter {
 
     this._ee.on(t, msg => this.receive(cmd, msg));
 
-    return this.broker.Promise.resolve();
+    return Promise.resolve();
   }
 
   /**
@@ -146,7 +142,7 @@ class ProtocolTransporter extends BaseTransporter {
    * @returns {Promise}
    */
   send (topic, data) {
-    if (!this._swarm || this._messenger.peers.length === 0) return this.broker.Promise.resolve();
+    if (!this._swarm || this._messenger.closed || this._messenger.closing || this._messenger.peers.length === 0) return Promise.resolve();
 
     return this._messenger.broadcast({ topic, data });
   }

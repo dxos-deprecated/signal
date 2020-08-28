@@ -7,7 +7,7 @@ const crypto = require('crypto');
 
 const { ServiceBroker } = require('moleculer');
 
-const { PeerMap } = require('./peer-map.js');
+const { addContext: addSignalContext } = require('./signal');
 const { ProtocolTransporter } = require('./transporter');
 const { Serializer } = require('./serializer');
 const packageJSON = require('../package.json');
@@ -18,6 +18,21 @@ const { DiscoveryService } = require('./services/discovery.service');
 
 const SIGNAL_PROTOCOL_VERSION = 4;
 
+/**
+ * Create a ServiceBroker
+ *
+ * @param {Buffer} topic
+ * @param {Object} opts
+ * @param {number} [opts.port=4000]
+ * @param {{ publicKey: Buffer, secretKey: Buffer }} opts.keyPair
+ * @param {Object} opts.hyperswarm Hyperswarm options
+ * @param {boolean} [opts.asBootstrap=false]
+ * @param {boolean} [opts.repl=false]
+ * @param {boolean} [opts.logger=true]
+ * @param {string} [opts.logLevel='info']
+ * @param {string} [opts.logFormat='full']
+ * @param {string} [opts.logDir]
+ */
 function createBroker (topic, opts = {}) {
   assert(Buffer.isBuffer(topic) && topic.length === 32, 'topic is required and must be a buffer of 32 bytes');
 
@@ -31,19 +46,20 @@ function createBroker (topic, opts = {}) {
     hyperswarm,
     asBootstrap = false,
     repl = false,
+    logger: loggerEnabled = true,
     logLevel,
     logFormat = 'full',
     logDir
   } = opts;
 
-  const logger = {
+  const logger = loggerEnabled && {
     type: 'Console',
     options: {
       formatter: logFormat
     }
   };
 
-  if (logDir) {
+  if (logger && logDir) {
     logger.type = 'File';
     logger.options = {
       folder: logDir,
@@ -51,8 +67,6 @@ function createBroker (topic, opts = {}) {
       formatter: logFormat
     };
   }
-
-  const peerMap = new PeerMap(keyPair.publicKey);
 
   const broker = new ServiceBroker({
     nodeID: keyPair.publicKey.toString('hex'),
@@ -72,10 +86,8 @@ function createBroker (topic, opts = {}) {
       version: packageJSON.version
     },
     created (broker) {
-      broker.context = {
-        keyPair,
-        peerMap
-      };
+      broker.context = { keyPair };
+      addSignalContext(broker.context);
     },
     started (broker) {
       broker.logger.info('SIGNAL_PROTOCOL_VERSION:', SIGNAL_PROTOCOL_VERSION);

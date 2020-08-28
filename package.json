@@ -26,7 +26,7 @@
     "coveralls": "npm run coverage && cat ./coverage/lcov.info | coveralls",
     "lint": "semistandard '**/*.js'",
     "prepublishOnly": "npm run test",
-    "test": "jest --verbose --passWithNoTests",
+    "test": "DEBUG=\"dxos:signal:test*\" jest --verbose --passWithNoTests",
     "posttest": "npm run lint"
   },
   "jest": {
@@ -34,8 +34,9 @@
   },
   "dependencies": {
     "@dxos/broadcast": "^1.0.0-beta.10",
-    "@hyperswarm/dht": "^3.6.1",
+    "@hyperswarm/dht": "^4.0.1",
     "buffer-json-encoding": "^1.0.2",
+    "debug": "^4.1.1",
     "end-of-stream": "^1.4.4",
     "hypercore-crypto": "^2.1.1",
     "hyperswarm": "^2.10.1",
@@ -48,18 +49,20 @@
     "nanomessage": "^8.2.0",
     "nanoresource-promise": "^2.0.0",
     "p-event": "^4.1.0",
-    "p-limit": "^2.3.0",
+    "p-limit": "^3.0.2",
     "public-ip": "^4.0.1",
     "pump": "^3.0.0",
     "simple-hypercore-protocol": "^2.1.0",
-    "simple-websocket": "^8.1.1",
-    "socket-signal": "^8.0.1",
+    "simple-websocket": "^9.0.0",
+    "socket-signal": "^9.0.0",
     "varint": "^5.0.0",
     "yargs": "^15.3.1"
   },
   "devDependencies": {
-    "jest": "^25.2.7",
-    "semistandard": "^14.2.0"
+    "@geut/discovery-swarm-webrtc": "^4.0.0",
+    "jest": "^26.4.2",
+    "semistandard": "^14.2.0",
+    "wrtc": "^0.4.6"
   },
   "publishConfig": {
     "access": "public"

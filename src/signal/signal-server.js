@@ -3,7 +3,7 @@
 //
 
 const Server = require('simple-websocket/server');
-const { SocketSignalServer } = require('socket-signal');
+const { SocketSignalServer, errors: { ERR_PEER_NOT_FOUND } } = require('socket-signal');
 
 class SignalServer extends SocketSignalServer {
   constructor (server, broker, opts = {}) {
@@ -37,53 +37,60 @@ class SignalServer extends SocketSignalServer {
   }
 
   async _onDisconnect (rpc) {
-    const id = this._peerMap.findIdByRPC(rpc);
+    const id = this._peerMap.peers.find(p => p.rpc === rpc);
     if (id) {
-      this._peerMap.topics.forEach(topicStr => {
-        this._peerMap.delete(Buffer.from(topicStr, 'hex'), this._keyPair.publicKey, id);
-      });
+      this._peerMap.peers
+        .filter(p => p.rpc === rpc)
+        .forEach(p => this._peerMap.delete(p.topic, p.id));
 
       this._broker.logger.info('peer-disconnected', { id: id.toString('hex') });
     }
-    this._peerMap.deleteRPC(rpc);
   }
 
   async _onJoin (rpc, data) {
-    this._peerMap.addRPC(rpc, data.id);
-    this._peerMap.add(data.topic, this._keyPair.publicKey, data.id);
+    this._peerMap.add({
+      id: data.id,
+      topic: data.topic,
+      owner: this._keyPair.publicKey,
+      rpc
+    });
     this._broker.logger.info('peer-join', { topic: data.topic.toString('hex'), id: data.id.toString('hex') });
-    return this._peerMap.toArrayFromTopic(data.topic);
+    return this._peerMap.getPeersByTopic(data.topic).map(p => p.id);
   }
 
   async _onLeave (rpc, data) {
     this._broker.logger.info('peer-leave', { topic: data.topic.toString('hex'), id: data.id.toString('hex') });
-    this._peerMap.delete(data.topic, this._keyPair.publicKey, data.id);
+    this._peerMap.delete(data.topic, data.id);
   }
 
   async _onOffer (rpc, data) {
-    const remotePeer = this._peerMap.find(data.topic, data.remoteId);
-    if (remotePeer.root.equals(this._keyPair.publicKey)) {
-      const rpc = this._peerMap.findRPC(data.remoteId);
-      if (!rpc) throw new Error('rpc not found');
+    const remotePeer = this._peerMap.peers.find(p => p.topic.equals(data.topic) && p.id.equals(data.remoteId));
+    if (!remotePeer) throw new ERR_PEER_NOT_FOUND(data.remoteId.toString('hex'));
 
+    if (remotePeer.owner.equals(this._keyPair.publicKey)) {
+      const rpc = remotePeer.rpc;
+      if (!rpc) throw new Error('rpc not found');
       return rpc.call('offer', data);
     }
-    return this._broker.call('discovery.offer', data, { nodeID: remotePeer.root.toString('hex'), retries: 0 });
+
+    return this._broker.call('discovery.offer', data, { nodeID: remotePeer.owner.toString('hex'), retries: 0 });
+  }
+
+  async _onSignal (rpc, data) {
+    const remotePeer = this._peerMap.peers.find(p => p.topic.equals(data.topic) && p.id.equals(data.remoteId));
+    if (!remotePeer) throw new ERR_PEER_NOT_FOUND(data.remoteId.toString('hex'));
+
+    if (remotePeer.owner.equals(this._keyPair.publicKey)) {
+      const rpc = remotePeer.rpc;
+      if (!rpc) throw new Error('rpc not found');
+      return rpc.emit('signal', data);
+    }
+
+    return this._broker.call('discovery.signal', data, { nodeID: remotePeer.owner.toString('hex'), retries: 0 });
   }
 
   async _onLookup (rpc, data) {
-    return this._peerMap.toArrayFromTopic(data.topic);
-  }
-
-  async _onCandidates (rpc, data) {
-    const remotePeer = this._peerMap.find(data.topic, data.remoteId);
-    if (remotePeer.root.equals(this._keyPair.publicKey)) {
-      const rpc = this._peerMap.findRPC(data.remoteId);
-      if (!rpc) throw new Error('rpc not found');
-
-      return rpc.emit('candidates', data);
-    }
-    return this._broker.call('discovery.candidates', data, { nodeID: remotePeer.root.toString('hex'), retries: 0 });
+    return this._peerMap.getPeersByTopic(data.topic).map(p => p.id);
   }
 }
 
