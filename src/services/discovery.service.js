@@ -9,12 +9,12 @@ exports.DiscoveryService = {
   name: 'discovery',
   events: {
     '$node.disconnected' (ctx) {
-      const { peerMap } = this.broker.context;
+      const { peerMap } = this.broker.shared;
 
       peerMap.deletePeersByOwner(Buffer.from(ctx.params.node.id, 'hex'));
     },
     '$node.connected' () {
-      const { peerMap } = this.broker.context;
+      const { peerMap } = this.broker.shared;
       const owner = Buffer.from(this.broker.nodeID, 'hex');
       const peers = peerMap
         .peers
@@ -25,7 +25,7 @@ exports.DiscoveryService = {
       return this.broker.broadcast('discovery.update', { peers }).catch(() => {});
     },
     'discovery.update' (ctx) {
-      const { peerMap } = this.broker.context;
+      const { peerMap } = this.broker.shared;
       const { peers } = ctx.params;
 
       if (ctx.nodeID === this.broker.nodeID) {
@@ -41,7 +41,7 @@ exports.DiscoveryService = {
     offer (ctx) {
       this.logger.debug('offer', ctx.params);
 
-      const { peerMap } = this.broker.context;
+      const { peerMap } = this.broker.shared;
       const { remoteId } = ctx.params;
 
       const peer = peerMap.peers.find(p => p.id.equals(remoteId) && p.rpc);
@@ -52,7 +52,7 @@ exports.DiscoveryService = {
     signal (ctx) {
       this.logger.debug('signal', ctx.params);
 
-      const { peerMap } = this.broker.context;
+      const { peerMap } = this.broker.shared;
       const { remoteId } = ctx.params;
 
       const peer = peerMap.peers.find(p => p.id.equals(remoteId) && p.rpc);
@@ -62,7 +62,7 @@ exports.DiscoveryService = {
     }
   },
   created () {
-    const { peerMap } = this.broker.context;
+    const { peerMap } = this.broker.shared;
     const owner = Buffer.from(this.broker.nodeID, 'hex');
 
     this._limit = pLimit(1);
@@ -79,13 +79,13 @@ exports.DiscoveryService = {
     }, 1000);
   },
   started () {
-    const { peerMap } = this.broker.context;
+    const { peerMap } = this.broker.shared;
 
     peerMap.on('peer-added', this._updatePeers);
     peerMap.on('peer-deleted', this._updatePeers);
   },
   stopped () {
-    const { peerMap } = this.broker.context;
+    const { peerMap } = this.broker.shared;
 
     peerMap.off('peer-added', this._updatePeers);
     peerMap.off('peer-deleted', this._updatePeers);

@@ -43,6 +43,8 @@ class ProtocolTransporter extends BaseTransporter {
 
     this.onPeerConnection = this.onPeerConnection.bind(this);
     this._messenger.on('message', message => this._ee.emit(message.topic, message.data));
+    this._messenger.on('peer-added', (peer) => this._ee.emit('peer-added', peer));
+    this._messenger.on('peer-deleted', (peer) => this._ee.emit('peer-deleted', peer));
   }
 
   get dht () {
@@ -51,6 +53,18 @@ class ProtocolTransporter extends BaseTransporter {
 
   get onlyLocal () {
     return this._messenger.peers.length === 0;
+  }
+
+  get peers () {
+    return this._messenger ? this._messenger.peers : [];
+  }
+
+  on (event, handler) {
+    this._ee.on(event, handler);
+  }
+
+  off (event, handler) {
+    this._ee.off(event, handler);
   }
 
   waitForConnected () {
@@ -149,8 +163,7 @@ class ProtocolTransporter extends BaseTransporter {
 
   async onPeerConnection (socket, info) {
     try {
-      const peer = await this._messenger.addPeer(info.client, socket);
-      peer.on('handshake', () => info.deduplicate(peer.remotePublicKey, peer.publicKey));
+      await this._messenger.addPeer(socket, info);
     } catch (err) {
       this.logger.error('Peer error', err);
     }

@@ -9,7 +9,7 @@ class SignalServer extends SocketSignalServer {
   constructor (server, broker, opts = {}) {
     super(opts);
 
-    const { keyPair, peerMap } = broker.context;
+    const { keyPair, peerMap } = broker.shared;
 
     this._broker = broker;
     this._keyPair = keyPair;

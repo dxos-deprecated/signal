@@ -48,8 +48,13 @@ class Peer extends Nanomessage {
   constructor ({ initiator, socket, topic, keyPair }) {
     super({ valueEncoding: binaryCodec });
 
+    this._initiator = initiator;
     this._socket = socket;
-    this._initializeProtocol(initiator, topic, keyPair);
+    this._initializeProtocol(topic, keyPair);
+  }
+
+  get initiator () {
+    return this._initiator;
   }
 
   get publicKey () {
@@ -73,10 +78,10 @@ class Peer extends Nanomessage {
     return super.send(this._buildMessage(payload, broadcast));
   }
 
-  _initializeProtocol (initiator, topic, keyPair) {
+  _initializeProtocol (topic, keyPair) {
     const socket = this._socket;
 
-    this._protocol = new Protocol(initiator, {
+    this._protocol = new Protocol(this._initiator, {
       keyPair,
       send (data) {
         socket.write(data);
@@ -155,9 +160,9 @@ class Messenger extends NanoresourcePromise {
     return Array.from(this._peers.values());
   }
 
-  async addPeer (initiator, socket) {
+  async addPeer (socket, info) {
     const peer = new Peer({
-      initiator,
+      initiator: info.client,
       socket,
       topic: this._topic,
       keyPair: this._keyPair
@@ -165,8 +170,10 @@ class Messenger extends NanoresourcePromise {
 
     peer.on('handshake', () => {
       if (socket.destroyed) return;
+      if (info.deduplicate(peer.remotePublicKey, peer.publicKey)) return;
       this._peers.add(peer);
       this._broadcast.updatePeers(this.peers);
+      this.emit('peer-added', { initiator: peer.initiator, peerId: peer.id });
     });
 
     const onBroadcast = message => this.emit('peer-message', message);
@@ -177,6 +184,7 @@ class Messenger extends NanoresourcePromise {
       this._broadcast.updatePeers(this.peers);
       peer.off('message', onBroadcast);
       peer.close().catch(() => {});
+      this.emit('peer-deleted', { initiator: peer.initiator, peerId: peer.id });
     });
 
     await peer.open();

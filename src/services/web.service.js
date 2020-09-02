@@ -6,8 +6,8 @@ const WebService = require('moleculer-web');
 
 const { SignalServer } = require('../signal');
 
-exports.SignalService = {
-  name: 'signal',
+exports.WebService = {
+  name: 'web',
   mixins: [WebService],
   settings: {
     routes: [{
@@ -22,13 +22,13 @@ exports.SignalService = {
         return data;
       },
       aliases: {
-        '/': 'signal.peers'
+        '/': 'web.status'
       }
     }]
   },
   actions: {
-    peers (ctx) {
-      const { peerMap } = this.broker.context;
+    status (ctx) {
+      const { peerMap } = this.broker.shared;
       const nodes = this.broker.registry.getNodeList({ onlyAvailable: true, withServices: true });
 
       return {
@@ -37,6 +37,9 @@ exports.SignalService = {
           peers: peerMap.getPeersByTopic(topic).map(peerMap.encode)
         })),
         signals: nodes.map(node => node.id.slice(0, 6)),
+        network: {
+
+        },
         version: this.broker.metadata.version
       };
     }

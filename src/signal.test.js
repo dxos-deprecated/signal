@@ -1,11 +1,15 @@
+//
+// Copyright 2020 DxOS.
+//
+
 const crypto = require('crypto');
 const debug = require('debug');
 const swarm = require('@geut/discovery-swarm-webrtc');
 const wrtc = require('wrtc');
 
-const { createBroker } = require('../broker');
+const { createBroker } = require('./broker');
 
-const log = debug('dxos:signal:test');
+const log = debug('dxos:test:signal');
 
 jest.setTimeout(100 * 1000);
 
@@ -24,13 +28,13 @@ const checkDiscoveryUpdate = (brokers, check) => Promise.all(brokers.map(broker 
 test.only('join/leave peer', async () => {
   const topic = crypto.randomBytes(32);
 
-  const brokers = [...Array(3).keys()].map(i => createBroker(topic, { port: 4000 + i, logger: false }));
+  const brokers = [...Array(10).keys()].map(i => createBroker(topic, { port: 5000 + i, logger: false }));
 
   log('> starting brokers');
   await Promise.all(brokers.map(b => b.start()));
 
   const clients = [...Array(3).keys()].map(i => swarm({
-    bootstrap: [`ws://127.0.0.1:${4000 + i}`],
+    bootstrap: [`ws://127.0.0.1:${5000 + i}`],
     simplePeer: {
       wrtc
     }
@@ -38,14 +42,10 @@ test.only('join/leave peer', async () => {
 
   const peerIds = clients.map(c => c.id);
   const waitForJoin = checkDiscoveryUpdate(brokers, broker => {
-    const { peerMap } = broker.context;
+    const { peerMap } = broker.shared;
 
     return peerIds.reduce((prev, peerId) => {
-      try {
-        return prev && !!peerMap.peers.find(p => p.topic.equals(topic) && p.id.equals(peerId));
-      } catch (err) {
-        return false;
-      }
+      return prev && peerMap.peers.find(p => p.topic.equals(topic) && p.id.equals(peerId));
     }, true);
   });
 
@@ -70,7 +70,7 @@ test.only('join/leave peer', async () => {
 
   log('> waiting for leaving');
   const waitForLeave = checkDiscoveryUpdate(brokers, broker => {
-    const { peerMap } = broker.context;
+    const { peerMap } = broker.shared;
     return peerMap.getPeersByTopic(topic).length === 0;
   });
 

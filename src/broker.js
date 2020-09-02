@@ -7,14 +7,15 @@ const crypto = require('crypto');
 
 const { ServiceBroker } = require('moleculer');
 
-const { addContext: addSignalContext } = require('./signal');
+const { PeerMap } = require('./signal');
 const { ProtocolTransporter } = require('./transporter');
 const { Serializer } = require('./serializer');
 const packageJSON = require('../package.json');
 
 // Services
-const { SignalService } = require('./services/signal.service');
+const { WebService } = require('./services/web.service');
 const { DiscoveryService } = require('./services/discovery.service');
+const { PresenceService } = require('./services/presence.service');
 
 const SIGNAL_PROTOCOL_VERSION = 4;
 
@@ -86,8 +87,10 @@ function createBroker (topic, opts = {}) {
       version: packageJSON.version
     },
     created (broker) {
-      broker.context = { keyPair };
-      addSignalContext(broker.context);
+      broker.shared = {
+        keyPair,
+        peerMap: new PeerMap(keyPair.publicKey)
+      };
     },
     started (broker) {
       broker.logger.info('SIGNAL_PROTOCOL_VERSION:', SIGNAL_PROTOCOL_VERSION);
@@ -108,8 +111,9 @@ function createBroker (topic, opts = {}) {
     }
   });
 
-  broker.createService(SignalService);
+  broker.createService(WebService);
   broker.createService(DiscoveryService);
+  broker.createService(PresenceService);
 
   return broker;
 }
