@@ -65,6 +65,10 @@ class Peer extends Nanomessage {
     return this._protocol.remotePublicKey;
   }
 
+  get sessionKey () {
+    return this._protocol.handshakeHash ? crypto.discoveryKey(this._protocol.handshakeHash) : null;
+  }
+
   // the broadcast use an `id` prop
   get id () {
     return this.remotePublicKey;
@@ -93,7 +97,9 @@ class Peer extends Nanomessage {
       onhandshake: () => this.emit('handshake'),
       onextension: (ch, id, data) => this.emit('extension', data)
     });
+
     socket.on('data', (data) => this._protocol.recv(data));
+
     eos(socket, () => this._protocol.destroy());
     this._protocol.open(0, {
       key: topic,
@@ -173,7 +179,7 @@ class Messenger extends NanoresourcePromise {
       if (info.deduplicate(peer.remotePublicKey, peer.publicKey)) return;
       this._peers.add(peer);
       this._broadcast.updatePeers(this.peers);
-      this.emit('peer-added', { initiator: peer.initiator, peerId: peer.id });
+      this.emit('peer-added', { initiator: peer.initiator, sessionKey: peer.sessionKey, peerId: peer.id });
     });
 
     const onBroadcast = message => this.emit('peer-message', message);
@@ -184,7 +190,7 @@ class Messenger extends NanoresourcePromise {
       this._broadcast.updatePeers(this.peers);
       peer.off('message', onBroadcast);
       peer.close().catch(() => {});
-      this.emit('peer-deleted', { initiator: peer.initiator, peerId: peer.id });
+      this.emit('peer-deleted', { initiator: peer.initiator, sessionKey: peer.sessionKey, peerId: peer.id });
     });
 
     await peer.open();

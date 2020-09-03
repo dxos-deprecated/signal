@@ -10,7 +10,7 @@ const timestamp = require('monotonic-timestamp');
 const lru = require('tiny-lru');
 const debounce = require('lodash.debounce');
 
-const MAX_WAIT = 1000;
+const MAX_WAIT = 2 * 1000;
 
 class Network extends EventEmitter {
   constructor (owner, publish) {
@@ -22,12 +22,13 @@ class Network extends EventEmitter {
     this._limit = pLimit(1);
     this._lastUpdate = lru(1000);
 
-    this._publish = publish;
-
     this.publish = debounce(() => {
-      this._limit.clearQueue();
-      return this._publish({ timestamp: timestamp(), connections: this.connections });
+      this._limit(() => {
+        this._limit.clearQueue();
+        return publish({ timestamp: timestamp(), connections: this.connections });
+      });
     }, MAX_WAIT);
+
     const onChange = debounce(() => this.emit('change', this._graph), MAX_WAIT);
     ['nodeAdded', 'edgeAdded', 'nodeDropped', 'edgeDropped'].forEach(ev => this._graph.on(ev, onChange));
   }
@@ -38,13 +39,13 @@ class Network extends EventEmitter {
 
   get connections () {
     const edges = [];
-    try {
-      this._graph.forEachEdge(this._owner, (key, attr, source) => {
-        if (source === this._owner) {
-          edges.push(this._graph.exportEdge(key));
-        }
-      });
-    } catch (err) {}
+    if (!this._graph.hasNode(this._owner)) return edges;
+
+    this._graph.forEachEdge(this._owner, (key, attr, source) => {
+      if (source === this._owner) {
+        edges.push(this._graph.exportEdge(key));
+      }
+    });
     return edges;
   }
 
@@ -52,7 +53,6 @@ class Network extends EventEmitter {
     // ignore old messages
     const lastTimestamp = this._lastUpdate.get(id) || 0;
     if (lastTimestamp > timestamp) return;
-
     this._lastUpdate.set(id, timestamp);
 
     if (!this._graph.hasNode(id)) {
@@ -80,31 +80,23 @@ class Network extends EventEmitter {
     }
   }
 
-  addConnection (initiator, peerId) {
+  addConnection (initiator, sessionKey, peerId) {
     if (!this._graph.hasNode(peerId)) {
       this._graph.addNode(peerId);
     }
 
     if (initiator) {
-      this._graph.addEdge(this._owner, peerId);
+      this._graph.addEdgeWithKey(sessionKey, this._owner, peerId);
     } else {
-      this._graph.addEdge(peerId, this._owner);
+      this._graph.addEdgeWithKey(sessionKey, peerId, this._owner);
     }
 
     this.publish();
   }
 
-  deleteConnection (initiator, peerId) {
-    if (!this._graph.hasNode(peerId)) return;
-
-    this._graph.forEachEdge(peerId, (key, attr, source) => {
-      if (initiator && source === this._owner) {
-        this._graph.dropEdge(key);
-      } else if (!initiator && source === peerId) {
-        this._graph.dropEdge(key);
-      }
-    });
-
+  deleteConnection (sessionKey) {
+    if (!this._graph.hasEdge(sessionKey)) return;
+    this._graph.dropEdge(sessionKey);
     this.publish();
   }
 }
@@ -128,6 +120,11 @@ exports.PresenceService = {
       return this._network.update(ctx.nodeID, timestamp, connections);
     }
   },
+  actions: {
+    network () {
+      return this._network.graph.export();
+    }
+  },
   created () {
     const { transporter } = this.broker.options;
 
@@ -141,23 +138,25 @@ exports.PresenceService = {
 
     transporter.peers.forEach(peer => {
       try {
-        this._network.addConnection(peer.initiator, peer.id.toString('hex'));
+        this._network.addConnection(peer.initiator, peer.sessionKey.toString('hex'), peer.id.toString('hex'));
       } catch (err) {
         this.logger.error(err);
       }
     });
 
-    transporter.on('peer-added', ({ initiator, peerId }) => {
+    transporter.on('peer-added', ({ initiator, sessionKey, peerId }) => {
       try {
-        this._network.addConnection(initiator, peerId.toString('hex'));
+        this._network.addConnection(initiator, sessionKey.toString('hex'), peerId.toString('hex'));
       } catch (err) {
         this.logger.error(err);
       }
     });
 
-    transporter.on('peer-deleted', ({ initiator, peerId }) => {
+    transporter.on('peer-deleted', ({ sessionKey }) => {
+      if (!sessionKey) return;
+
       try {
-        this._network.deleteConnection(initiator, peerId.toString('hex'));
+        this._network.deleteConnection(sessionKey.toString('hex'));
       } catch (err) {
         this.logger.error(err);
       }
