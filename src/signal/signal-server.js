@@ -37,13 +37,13 @@ class SignalServer extends SocketSignalServer {
   }
 
   async _onDisconnect (rpc) {
-    const id = this._peerMap.peers.find(p => p.rpc === rpc);
-    if (id) {
+    const peer = this._peerMap.peers.find(p => p.rpc === rpc);
+    if (peer) {
       this._peerMap.peers
         .filter(p => p.rpc === rpc)
         .forEach(p => this._peerMap.delete(p.topic, p.id));
 
-      this._broker.logger.info('peer-disconnected', { id: id.toString('hex') });
+      this._broker.logger.info('peer-disconnected', { id: peer.id.toString('hex') });
     }
   }
 

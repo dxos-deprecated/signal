@@ -86,6 +86,34 @@ function createBroker (topic, opts = {}) {
       port,
       version: packageJSON.version
     },
+    metrics: {
+      enabled: true,
+      reporter: [
+        {
+          type: 'Event',
+          options: {
+            eventName: '$metrics.snapshot',
+            includes: [
+              'process.memory.heap.size.**',
+              'process.memory.heap.',
+              'process.uptime',
+              'process.internal.active.**',
+              'os.memory.**',
+              'os.uptime',
+              'os.hostname',
+              'os.arch',
+              'os.platform',
+              'os.cpu.utilization',
+              'os.cpu.user',
+              'os.cpu.system',
+              'os.cpu.total'
+            ],
+            broadcast: true,
+            interval: 5
+          }
+        }
+      ]
+    },
     created (broker) {
       broker.shared = {
         keyPair,

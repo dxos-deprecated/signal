@@ -37,16 +37,17 @@ class Network extends EventEmitter {
     return this._graph;
   }
 
-  get connections () {
-    const edges = [];
-    if (!this._graph.hasNode(this._owner)) return edges;
+  getConnections (id = this._owner) {
+    const connections = [];
+    if (!this._graph.hasNode(id)) return [];
 
-    this._graph.forEachEdge(this._owner, (key, attr, source) => {
-      if (source === this._owner) {
-        edges.push(this._graph.exportEdge(key));
+    this._graph.forEachEdge(id, (key, attr, source, target) => {
+      if (source === id) {
+        connections.push(target);
       }
     });
-    return edges;
+
+    return connections;
   }
 
   update (id, timestamp, connections = []) {
@@ -131,6 +132,8 @@ exports.PresenceService = {
     this._network = new Network(this.broker.nodeID, data => {
       return this.broker.broadcast('presence.update', data);
     });
+
+    this.broker.shared.network = this._network;
 
     this._network.on('change', (graph) => {
       this.broker.broadcastLocal('$presence.update', graph);

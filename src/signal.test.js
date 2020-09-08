@@ -6,6 +6,7 @@ const crypto = require('crypto');
 const debug = require('debug');
 const swarm = require('@geut/discovery-swarm-webrtc');
 const wrtc = require('wrtc');
+const pEvent = require('p-event');
 
 const { createBroker } = require('./broker');
 
@@ -14,18 +15,10 @@ const log = debug('dxos:test:signal');
 jest.setTimeout(100 * 1000);
 
 const checkDiscoveryUpdate = (brokers, check) => Promise.all(brokers.map(broker => {
-  return new Promise(resolve => {
-    const onUpdate = () => {
-      if (check(broker)) {
-        broker.localBus.off('$discovery.update', onUpdate);
-        resolve();
-      }
-    };
-    broker.localBus.on('$discovery.update', onUpdate);
-  });
+  return pEvent(broker.localBus, '$discovery.update', () => check(broker));
 }));
 
-test.only('join/leave peer', async () => {
+test('join/leave/connection webrtc peer', async () => {
   const topic = crypto.randomBytes(32);
 
   const brokers = [...Array(10).keys()].map(i => createBroker(topic, { port: 5000 + i, logger: false }));

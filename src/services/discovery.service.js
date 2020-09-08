@@ -29,12 +29,12 @@ exports.DiscoveryService = {
       const { peers } = ctx.params;
 
       if (ctx.nodeID === this.broker.nodeID) {
-        this.broker.broadcastLocal('$discovery.update');
+        this._discoveryUpdate();
         return;
       }
 
       peerMap.updatePeersByOwner(Buffer.from(ctx.nodeID, 'hex'), peers.map(peerMap.decode));
-      this.broker.broadcastLocal('$discovery.update');
+      this._discoveryUpdate();
     }
   },
   actions: {
@@ -76,6 +76,10 @@ exports.DiscoveryService = {
           .map(peerMap.encode);
         return this.broker.broadcast('discovery.update', { peers }).catch(() => {});
       }).catch(() => {});
+    }, 1000);
+
+    this._discoveryUpdate = debounce(() => {
+      this.broker.broadcastLocal('$discovery.update');
     }, 1000);
   },
   started () {
