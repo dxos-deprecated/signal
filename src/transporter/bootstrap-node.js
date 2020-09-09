@@ -80,9 +80,12 @@ class BootstrapNode {
   }
 
   stop () {
+    if (this._stop || this._dht.destroyed) return;
+
     this._stop = true;
     if (this._dht) {
       this._dht.destroy();
+      return pEvent(this._dht, 'close');
     }
   }
 
