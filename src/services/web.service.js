@@ -3,7 +3,6 @@
 //
 
 const WebService = require('moleculer-web');
-const eos = require('end-of-stream');
 
 const { SignalServer } = require('../signal');
 
@@ -15,9 +14,7 @@ exports.WebService = {
       mappingPolicy: 'restrict',
       aliases: {
         '/': 'web.status',
-        'GET /live/status' (req, res) {
-          this.network(req, res);
-        }
+        '/status': 'web.status'
       }
     }]
   },
@@ -31,105 +28,108 @@ exports.WebService = {
         Expires: '0'
       };
 
+      const status = this.getStatus();
+
       return {
-        nodes: this.getInfo({ signal: true }),
+        updatedAt: status.updatedAt,
+        nodes: Array.from(status.nodes.values()),
         version: this.broker.metadata.version
       };
     }
   },
   events: {
     '$metrics.snapshot' (ctx) {
-      this._metrics.set(ctx.nodeID, ctx.params);
+      this.updateMetrics(ctx.nodeID, ctx.params);
+    },
+    '$node.connected' (ctx) {
+      this._status.toUpdate = true;
+    },
+    '$node.disconnected' (ctx) {
+      const { node } = ctx.params;
+      this._status.nodes.delete(node.id);
+      this._status.toUpdate = true;
+    },
+    '$presence.update' (ctx) {
+      this._status.toUpdate = true;
+    },
+    '$discovery.update' (ctx) {
+      this._status.toUpdate = true;
     }
   },
   methods: {
-    network (req, res) {
-      const broker = this.broker;
-
-      // SSE Setup
-      res.writeHead(200, {
-        'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        Connection: 'keep-alive'
-      });
-
-      const watch = () => {
-        let messageId = 0;
-
-        const onUpdate = (flags = {}) => {
-          res.write(`id: ${messageId++}\n`);
-          res.write(`data: ${JSON.stringify(this.getInfo(flags))}\n\n`);
-        };
-
-        const onDiscoveryUpdate = () => onUpdate({ signal: true });
-
-        broker.localBus.on('$presence.update', onUpdate);
-        broker.localBus.on('$metrics.snapshot', onUpdate);
-        broker.localBus.on('$discovery.update', onDiscoveryUpdate);
-        eos(req, () => {
-          this._sseRequests.delete(req);
-          broker.localBus.off('$presence.update', onUpdate);
-          broker.localBus.off('$metrics.snapshot', onUpdate);
-          broker.localBus.off('$discovery.update', onDiscoveryUpdate);
-        });
-      };
-
-      this._sseRequests.add(req);
-      res.write(`data: ${JSON.stringify(this.getInfo({ signal: true }))}\n\n`);
-      watch();
-    },
-    getInfo ({ signal = false } = {}) {
+    getStatus () {
       const { network } = this.broker.shared;
-
-      if (signal) {
-        this._peersBySignal = this.peersBySignal();
-      }
 
       const nodes = this.broker.registry.getNodeList({ onlyAvailable: true, withServices: true });
 
-      return nodes.map(node => {
-        const shortId = node.id.slice(0, 6);
-        return {
-          id: shortId,
-          connections: network.getConnections(node.id).map(c => c.slice(0, 6)),
-          metrics: this._metrics.get(node.id),
+      if (!this._status.toUpdate) {
+        return this._status;
+      }
+
+      nodes.forEach(node => {
+        const oldNode = this._status.nodes.get(node.id) || {};
+
+        this._status.nodes.set(node.id, {
+          id: node.id,
+          connections: network.getConnections(node.id).map(conn => ({
+            id: conn.key,
+            target: conn.target
+          })),
+          metrics: oldNode.metrics || [],
           signal: {
-            topics: this._peersBySignal[node.id]
+            topics: this.getSignalPeers(node.id)
           }
-        };
-      });
-    },
-    peersBySignal () {
-      const { peerMap } = this.broker.shared;
-
-      const result = {};
-      peerMap.topics.forEach(topic => {
-        const topicStr = topic.toString('hex').slice(0, 6);
-        peerMap.getPeersByTopic(topic).map(peerMap.encode).forEach(peer => {
-          if (!result[peer.owner]) {
-            result[peer.owner] = {};
-          }
-
-          if (!result[peer.owner][topicStr]) {
-            result[peer.owner][topicStr] = { peers: [] };
-          }
-
-          const shortId = peer.id.slice(0, 6);
-          if (result[peer.owner][topicStr].peers.includes(shortId)) return;
-          result[peer.owner][topicStr].peers.push(shortId);
         });
       });
 
-      return result;
+      this._status.toUpdate = false;
+      this._status.updatedAt = Date.now();
+
+      return this._status;
+    },
+    updateMetrics (nodeID, metrics) {
+      if (!this._status.nodes.has(nodeID)) return;
+
+      const node = this._status.nodes.get(nodeID);
+      node.metrics = metrics;
+      this._status.updatedAt = Date.now();
+    },
+    getSignalPeers (peerId) {
+      const { peerMap } = this.broker.shared;
+      const peerIdBuf = Buffer.from(peerId, 'hex');
+      const peersByTopic = new Map();
+
+      peerMap.topics.forEach(topic => {
+        const topicStr = topic.toString('hex');
+        peerMap.getPeersByTopic(topic)
+          .filter(peer => peer.owner.equals(peerIdBuf))
+          .map(peerMap.encode)
+          .forEach(peer => {
+            let value;
+            if (peersByTopic.has(topicStr)) {
+              value = peersByTopic.get(topicStr);
+            } else {
+              value = { id: topicStr, peers: [] };
+              peersByTopic.set(topicStr, value);
+            }
+
+            if (value.peers.includes(peer.id)) return;
+            value.peers.push(peer.id);
+          });
+      });
+
+      return Array.from(peersByTopic.values());
     }
   },
   created () {
     this.settings.port = this.broker.metadata.port || 4000;
     this._signal = new SignalServer(this.server, this.broker);
     this._sseRequests = new Set();
-    this._peersBySignal = {};
-    this._metrics = new Map();
+    this._status = {
+      updatedAt: 0,
+      toUpdate: true,
+      nodes: new Map()
+    };
   },
   async started () {
     return this._signal.open();

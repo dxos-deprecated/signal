@@ -94,8 +94,7 @@ function createBroker (topic, opts = {}) {
           options: {
             eventName: '$metrics.snapshot',
             includes: [
-              'process.memory.heap.size.**',
-              'process.memory.heap.',
+              'process.memory.rss',
               'process.uptime',
               'process.internal.active.**',
               'os.memory.**',

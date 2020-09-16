@@ -25,7 +25,7 @@ class Network extends EventEmitter {
     this.publish = debounce(() => {
       this._limit(() => {
         this._limit.clearQueue();
-        return publish({ timestamp: timestamp(), connections: this.connections });
+        return publish({ timestamp: timestamp(), connections: this.getConnections() });
       });
     }, MAX_WAIT);
 
@@ -43,7 +43,7 @@ class Network extends EventEmitter {
 
     this._graph.forEachEdge(id, (key, attr, source, target) => {
       if (source === id) {
-        connections.push(target);
+        connections.push({ key, target });
       }
     });
 
@@ -66,7 +66,14 @@ class Network extends EventEmitter {
       }
     });
 
-    this._graph.import({ edges: connections });
+    this._graph.import({
+      edges: connections.map(conn => ({
+        key: conn.key,
+        source: id,
+        target: conn.target,
+        undirected: true
+      }))
+    });
   }
 
   addPeer (id) {
