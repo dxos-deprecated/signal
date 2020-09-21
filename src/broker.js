@@ -94,18 +94,16 @@ function createBroker (topic, opts = {}) {
           options: {
             eventName: '$metrics.snapshot',
             includes: [
+              'moleculer.transporter.packets.**',
+              'moleculer.request.error.total',
               'process.memory.rss',
               'process.uptime',
-              'process.internal.active.**',
               'os.memory.**',
               'os.uptime',
               'os.hostname',
               'os.arch',
               'os.platform',
-              'os.cpu.utilization',
-              'os.cpu.user',
-              'os.cpu.system',
-              'os.cpu.total'
+              'os.cpu.utilization'
             ],
             broadcast: true,
             interval: 5
