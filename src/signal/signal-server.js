@@ -7,7 +7,9 @@ const { SocketSignalServer, errors: { ERR_PEER_NOT_FOUND } } = require('socket-s
 
 class SignalServer extends SocketSignalServer {
   constructor (server, broker, opts = {}) {
-    super(opts);
+    const { path, ...signalOpts } = opts;
+
+    super(signalOpts);
 
     const { keyPair, peerMap } = broker.shared;
 
@@ -15,7 +17,7 @@ class SignalServer extends SocketSignalServer {
     this._keyPair = keyPair;
     this._peerMap = peerMap;
 
-    this._server = new Server({ server });
+    this._server = new Server({ server, path });
     this._server.setMaxListeners(Infinity);
 
     this.on('error', err => this._broker.logger.warn('signal-server', err));

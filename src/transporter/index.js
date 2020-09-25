@@ -128,14 +128,14 @@ class ProtocolTransporter extends BaseTransporter {
   }
 
   async disconnect () {
-    if (this._bootstrapNode) {
-      await this._bootstrapNode.stop();
-    }
+    // if (this._bootstrapNode) {
+    //   await this._bootstrapNode.stop();
+    // }
 
-    if (this._swarm) {
-      await new Promise(resolve => this._swarm.destroy(() => resolve()));
-      await this._messenger.close();
-    }
+    // if (this._swarm) {
+    //   await new Promise(resolve => this._swarm.destroy(() => resolve()));
+    //   await this._messenger.close();
+    // }
   }
 
   subscribe (cmd, nodeID) {

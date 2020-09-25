@@ -16,6 +16,7 @@ const packageJSON = require('../package.json');
 const { WebService } = require('./services/web.service');
 const { DiscoveryService } = require('./services/discovery.service');
 const { PresenceService } = require('./services/presence.service');
+const { StatusService } = require('./services/status.service');
 
 const SIGNAL_PROTOCOL_VERSION = 4;
 
@@ -94,19 +95,13 @@ function createBroker (topic, opts = {}) {
           options: {
             eventName: '$metrics.snapshot',
             includes: [
-              'moleculer.transporter.packets.**',
               'moleculer.request.error.total',
               'process.memory.rss',
               'process.uptime',
-              'os.memory.**',
-              'os.uptime',
-              'os.hostname',
-              'os.arch',
-              'os.platform',
               'os.cpu.utilization'
             ],
             broadcast: true,
-            interval: 5
+            interval: 10
           }
         }
       ]
@@ -139,6 +134,7 @@ function createBroker (topic, opts = {}) {
   broker.createService(WebService);
   broker.createService(DiscoveryService);
   broker.createService(PresenceService);
+  broker.createService(StatusService);
 
   return broker;
 }
