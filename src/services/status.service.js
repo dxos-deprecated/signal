@@ -2,8 +2,8 @@
 // Copyright 2020 DxOS.
 //
 
-const { GraphQLClient, gql } = require('graphql-request');
 const { AbortController } = require('@azure/abort-controller');
+const { getSystemInfo, getServiceInfo } = require('../system-information');
 
 const delay = (ms, signal) => {
   return new Promise((resolve, reject) => {
@@ -35,9 +35,8 @@ exports.StatusService = {
 
         type Node {
           id: String!
-          kubeServices: [KubeService]!
+          kubeStatus: KubeStatus!
           connections: [Connection]!
-          metrics: [Metric]!
           signal: Signal
         }
 
@@ -55,17 +54,20 @@ exports.StatusService = {
           peers: [String]!
         }
 
-        type Metric {
-          type: String!,
-          name: String!,
-          description: String!,
-          unit: String,
-          values: [MetricValue]!
+        type KubeStatus {
+          system: KubeSystemInfo
+          services: [KubeService!]
         }
 
-        type MetricValue {
-          key: String,
-          value: Any
+        type KubeSystemInfo {
+          version: String
+          cpu: CPUInfo,
+          memory: MemoryInfo,
+          device: DeviceInfo,
+          network: NetworkInfo
+          os: OSInfo
+          time: TimeInfo
+          nodejs: NodeJSInfo
         }
 
         type KubeService {
@@ -73,6 +75,46 @@ exports.StatusService = {
           status: String!
           cpu: Int!
           memory: Int!
+        }
+
+        type CPUInfo {
+          brand: String!
+          cores: Int!
+          manufacturer: String!
+          vendor: String!
+          speed: String!
+        }
+
+        type MemoryInfo {
+          total: String!
+          free: String!
+          used: String!
+          swaptotal: String!
+        }
+
+        type DeviceInfo {
+          model: String!
+          serial: String!
+          version: String!
+        }
+
+        type NetworkInfo {
+          addresses: [String]!
+        }
+
+        type OSInfo {
+          arch: String!
+          platform: String!
+          version: String
+        }
+
+        type TimeInfo {
+          now: Timestamp!
+          up: Timestamp!
+        }
+
+        type NodeJSInfo {
+          version: String!
         }
       `
     }
@@ -95,9 +137,6 @@ exports.StatusService = {
     }
   },
   events: {
-    '$metrics.snapshot' (ctx) {
-      this.updateMetrics(ctx.nodeID, ctx.params);
-    },
     '$node.connected' (ctx) {
       this._status.toUpdate = true;
     },
@@ -112,8 +151,8 @@ exports.StatusService = {
     '$discovery.update' (ctx) {
       this._status.toUpdate = true;
     },
-    'status.kube-services' (ctx) {
-      this.updateKubeServices(ctx.nodeID, ctx.params.services);
+    'status.kube-status' (ctx) {
+      this.updateKubeStatus(ctx.nodeID, ctx.params);
     }
   },
   methods: {
@@ -131,12 +170,11 @@ exports.StatusService = {
 
         this._status.nodes.set(node.id, {
           id: node.id,
-          kubeServices: oldNode.kubeServices || [],
+          kubeStatus: oldNode.kubeStatus || { services: [] },
           connections: network.getConnections(node.id).map(conn => ({
             id: conn.key,
             target: conn.target
           })),
-          metrics: oldNode.metrics || [],
           signal: {
             topics: this.getSignalPeers(node.id)
           }
@@ -148,18 +186,12 @@ exports.StatusService = {
 
       return this._status;
     },
-    updateMetrics (nodeID, metrics) {
+    updateKubeStatus (nodeID, { system, services }) {
       if (!this._status.nodes.has(nodeID)) return;
 
       const node = this._status.nodes.get(nodeID);
-      node.metrics = metrics;
-      this._status.updatedAt = new Date();
-    },
-    updateKubeServices (nodeID, services) {
-      if (!this._status.nodes.has(nodeID)) return;
+      node.kubeStatus = { system, services: services || [] };
 
-      const node = this._status.nodes.get(nodeID);
-      node.kubeServices = services;
       this._status.updatedAt = new Date();
     },
     getSignalPeers (peerId) {
@@ -202,24 +234,14 @@ exports.StatusService = {
     this._controller = new AbortController();
     const signal = this._controller.signal;
 
-    const graphQLClient = new GraphQLClient('https://apollo1.kube.moon.dxos.network/api', {
-      signal
-    });
-
-    const serviceStatusQuery = gql`
-      {
-        serviceStatus: service_status {
-          json
-        }
-      }
-    `;
-
     (async () => {
       while (!signal.aborted) {
-        await delay(5 * 1000, signal);
-        const data = await graphQLClient.request(serviceStatusQuery).catch(() => {});
-        if (data && data.serviceStatus) {
-          this.broker.broadcast('status.kube-services', { services: JSON.parse(data.serviceStatus.json) });
+        // TODO: this could be an option (pollInterval)
+        await delay(10 * 1000, signal);
+        const system = await getSystemInfo().catch(() => {});
+        const services = await getServiceInfo().catch(() => {});
+        if (system || services) {
+          this.broker.broadcast('status.kube-status', { system, services });
         }
       }
     })().catch(() => {});

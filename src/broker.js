@@ -87,25 +87,6 @@ function createBroker (topic, opts = {}) {
       port,
       version: packageJSON.version
     },
-    metrics: {
-      enabled: true,
-      reporter: [
-        {
-          type: 'Event',
-          options: {
-            eventName: '$metrics.snapshot',
-            includes: [
-              'moleculer.request.error.total',
-              'process.memory.rss',
-              'process.uptime',
-              'os.cpu.utilization'
-            ],
-            broadcast: true,
-            interval: 10
-          }
-        }
-      ]
-    },
     created (broker) {
       broker.shared = {
         keyPair,
