@@ -2,6 +2,7 @@
 // Copyright 2020 DxOS.
 //
 
+const moment = require('moment');
 const { AbortController } = require('@azure/abort-controller');
 const { getSystemInfo, getServiceInfo } = require('../system-information');
 
@@ -145,10 +146,10 @@ exports.StatusService = {
       this._status.nodes.delete(node.id);
       this._status.toUpdate = true;
     },
-    '$presence.update' (ctx) {
+    '$broker.presence-update' (ctx) {
       this._status.toUpdate = true;
     },
-    '$discovery.update' (ctx) {
+    '$broker.discovery-update' (ctx) {
       this._status.toUpdate = true;
     },
     'status.kube-status' (ctx) {
@@ -182,7 +183,7 @@ exports.StatusService = {
       });
 
       this._status.toUpdate = false;
-      this._status.updatedAt = new Date();
+      this._status.updatedAt = moment();
 
       return this._status;
     },
@@ -192,7 +193,7 @@ exports.StatusService = {
       const node = this._status.nodes.get(nodeID);
       node.kubeStatus = { system, services: services || [] };
 
-      this._status.updatedAt = new Date();
+      this._status.updatedAt = moment();
     },
     getSignalPeers (peerId) {
       const { peerMap } = this.broker.shared;
@@ -223,7 +224,7 @@ exports.StatusService = {
   },
   created () {
     this._status = {
-      updatedAt: new Date(),
+      updatedAt: moment(),
       toUpdate: true,
       nodes: new Map()
     };

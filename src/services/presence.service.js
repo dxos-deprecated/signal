@@ -143,7 +143,7 @@ exports.PresenceService = {
     this.broker.shared.network = this._network;
 
     this._network.on('change', (graph) => {
-      this.broker.broadcastLocal('$presence.update', graph);
+      this.broker.broadcastLocal('$broker.presence-update', graph);
     });
 
     transporter.peers.forEach(peer => {

@@ -15,7 +15,7 @@ const log = debug('dxos:test:signal');
 jest.setTimeout(100 * 1000);
 
 const checkDiscoveryUpdate = (brokers, check) => Promise.all(brokers.map(broker => {
-  return pEvent(broker.localBus, '$discovery.update', () => check(broker));
+  return pEvent(broker.localBus, '$broker.discovery-update', () => check(broker));
 }));
 
 test('join/leave/connection webrtc peer', async () => {

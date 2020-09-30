@@ -41,7 +41,7 @@ test('5 brokers full network connected', async () => {
   const brokers = [...Array(MAX_BROKERS).keys()].map(i => createBroker(topic, { port: 6000 + i, logger: false }));
 
   const waitForPresenceGraph = Promise.all(brokers.map(async broker => {
-    return pEvent(broker.localBus, '$presence.update', (graph) => complete(broker.nodeID, graph, MAX_BROKERS));
+    return pEvent(broker.localBus, '$broker.presence-update', (graph) => complete(broker.nodeID, graph, MAX_BROKERS));
   }));
 
   const waitForConnected = Promise.all(brokers.map(broker => {
@@ -52,11 +52,10 @@ test('5 brokers full network connected', async () => {
   log('> starting brokers');
   await Promise.all(brokers.map(b => b.start()));
 
+  await waitForConnected;
+
   log('> waiting for the nodes to be full connected');
-  await Promise.all([
-    waitForConnected,
-    waitForPresenceGraph
-  ]);
+  await waitForPresenceGraph;
 
   log('> stopping brokers');
   return Promise.all(brokers.map(b => b.stop()));

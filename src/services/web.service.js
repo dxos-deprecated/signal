@@ -4,6 +4,7 @@
 
 const WebService = require('moleculer-web');
 const { ApolloService } = require('moleculer-apollo-server');
+const moment = require('moment');
 const { Kind } = require('graphql');
 
 const { SignalServer } = require('../signal');
@@ -28,9 +29,12 @@ exports.WebService = {
       resolvers: {
         Timestamp: {
           __parseValue (value) {
-            return new Date(value); // value from the client
+            return moment(value); // value from the client
           },
           __serialize (value) {
+            if (typeof value === 'string') {
+              return value;
+            }
             return value.toISOString(); // value sent to the client
           },
           __parseLiteral (ast) {

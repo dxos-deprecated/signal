@@ -2,30 +2,14 @@
 // Copyright 2020 DxOS.
 //
 
-const { Nanomessage } = require('nanomessage');
+const { EventEmitter } = require('events');
+const { NanoresourcePromise } = require('nanoresource-promise/emitter');
 const eos = require('end-of-stream');
 const varint = require('varint');
-const { NanoresourcePromise } = require('nanoresource-promise/emitter');
 const Protocol = require('simple-hypercore-protocol');
 const crypto = require('hypercore-crypto');
 
 const { Broadcast } = require('@dxos/broadcast');
-
-const ATTR_DIRECT = 1;
-const ATTR_BROADCAST = 1 << 2;
-
-const binaryCodec = {
-  encode (obj, buf, offset) {
-    obj.copy(buf, offset);
-    return obj;
-  },
-  decode (buf, start, end) {
-    return buf.slice(start, end);
-  },
-  encodingLength (obj) {
-    return obj.length;
-  }
-};
 
 const packetCodec = {
   encode (obj) {
@@ -44,13 +28,17 @@ const packetCodec = {
   }
 };
 
-class Peer extends Nanomessage {
+class Peer extends EventEmitter {
   constructor ({ initiator, socket, topic, keyPair }) {
-    super({ valueEncoding: binaryCodec });
+    super();
 
     this._initiator = initiator;
     this._socket = socket;
     this._initializeProtocol(topic, keyPair);
+  }
+
+  get destroyed () {
+    return this._socket.destroyed;
   }
 
   get initiator () {
@@ -74,12 +62,14 @@ class Peer extends Nanomessage {
     return this.remotePublicKey;
   }
 
-  request (payload, broadcast = false) {
-    return super.request(this._buildMessage(payload, broadcast));
+  send (buf) {
+    if (this._socket.destroyed) return;
+    this._protocol.extension(0, 0, buf);
   }
 
-  send (payload, broadcast = false) {
-    return super.send(this._buildMessage(payload, broadcast));
+  destroy () {
+    if (this._socket.destroyed) return;
+    return this._socket.destroy();
   }
 
   _initializeProtocol (topic, keyPair) {
@@ -95,7 +85,7 @@ class Peer extends Nanomessage {
         socket.destroy();
       },
       onhandshake: () => this.emit('handshake'),
-      onextension: (ch, id, data) => this.emit('extension', data)
+      onextension: (ch, id, data) => this.emit('message', data)
     });
 
     socket.on('data', (data) => this._protocol.recv(data));
@@ -105,41 +95,6 @@ class Peer extends Nanomessage {
       key: topic,
       discoveryKey: crypto.discoveryKey(topic)
     });
-  }
-
-  _open () {
-    if (this._socket.destroyed) throw new Error('socket destroyed');
-    return super._open();
-  }
-
-  _subscribe (next) {
-    const onData = data => next(data);
-
-    this.on('extension', onData);
-    return () => this.off('extension', onData);
-  }
-
-  _send (buf) {
-    if (this._socket.destroyed) return;
-    this._protocol.extension(0, 0, buf);
-  }
-
-  _buildMessage (payload, broadcast) {
-    if (!Buffer.isBuffer(payload)) {
-      payload = packetCodec.encode(payload);
-    }
-    const header = Buffer.from(varint.encode(broadcast ? ATTR_BROADCAST : ATTR_DIRECT));
-    return Buffer.concat([header, payload], header.length + payload.length);
-  }
-
-  _onMessage (buf, info) {
-    const header = varint.decode(buf);
-    const payload = buf.slice(varint.decode.bytes);
-    const broadcast = header & ATTR_BROADCAST;
-
-    if (info.ephemeral) {
-      this.emit('message', { broadcast, payload });
-    }
   }
 }
 
@@ -166,7 +121,7 @@ class Messenger extends NanoresourcePromise {
     return Array.from(this._peers.values());
   }
 
-  async addPeer (socket, info) {
+  addPeer (socket, info) {
     const peer = new Peer({
       initiator: info.client,
       socket,
@@ -189,11 +144,8 @@ class Messenger extends NanoresourcePromise {
       this._peers.delete(peer);
       this._broadcast.updatePeers(this.peers);
       peer.off('message', onBroadcast);
-      peer.close().catch(() => {});
       this.emit('peer-deleted', { initiator: peer.initiator, sessionKey: peer.sessionKey, peerId: peer.id });
     });
-
-    await peer.open();
 
     return peer;
   }
@@ -217,17 +169,16 @@ class Messenger extends NanoresourcePromise {
 
   _middleware () {
     return {
-      send: (packet, node) => node.send(packet, true),
+      // send must be async
+      send: async (packet, node) => node.send(packet),
       subscribe: (onData) => {
         const onMessage = message => {
-          const { broadcast, payload } = message;
-          if (!broadcast) {
-            this.emit('message', packetCodec.decode(payload));
-            return;
-          }
-
-          const { data } = onData(payload);
-          this.emit('message', packetCodec.decode(data));
+          try {
+            const response = onData(message);
+            if (response && response.data) {
+              this.emit('message', packetCodec.decode(response.data));
+            }
+          } catch (err) {}
         };
 
         this.on('peer-message', onMessage);

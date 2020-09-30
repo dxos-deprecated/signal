@@ -79,7 +79,7 @@ exports.DiscoveryService = {
     }, 1000);
 
     this._discoveryUpdate = debounce(() => {
-      this.broker.broadcastLocal('$discovery.update');
+      this.broker.broadcastLocal('$broker.discovery-update');
     }, 1000);
   },
   started () {
