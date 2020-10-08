@@ -155,10 +155,13 @@ class ProtocolTransporter extends BaseTransporter {
    *
    * @returns {Promise}
    */
-  send (topic, data) {
+  send (topic, data, { packet }) {
     if (!this._swarm || this._messenger.closed || this._messenger.closing || this._messenger.peers.length === 0) return Promise.resolve();
 
-    return this._messenger.broadcast({ topic, data });
+    const sended = this._messenger.send(packet.target, { topic, data });
+    if (!sended) {
+      return this._messenger.broadcast({ topic, data });
+    }
   }
 
   async onPeerConnection (socket, info) {

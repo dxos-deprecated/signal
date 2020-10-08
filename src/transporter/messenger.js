@@ -11,6 +11,9 @@ const crypto = require('hypercore-crypto');
 
 const { Broadcast } = require('@dxos/broadcast');
 
+const BROADCAST_CHANNEL = 0;
+const DIRECT_CHANNEL = 1;
+
 const packetCodec = {
   encode (obj) {
     const length = Buffer.byteLength(obj.topic, 'utf8');
@@ -62,9 +65,14 @@ class Peer extends EventEmitter {
     return this.remotePublicKey;
   }
 
+  broadcast (buf) {
+    if (this._socket.destroyed) return;
+    this._protocol.extension(BROADCAST_CHANNEL, 0, buf);
+  }
+
   send (buf) {
     if (this._socket.destroyed) return;
-    this._protocol.extension(0, 0, buf);
+    this._protocol.extension(DIRECT_CHANNEL, 0, buf);
   }
 
   destroy () {
@@ -85,16 +93,12 @@ class Peer extends EventEmitter {
         socket.destroy();
       },
       onhandshake: () => this.emit('handshake'),
-      onextension: (ch, id, data) => this.emit('message', data)
+      onextension: (ch, id, data) => this.emit('message', ch, data)
     });
 
     socket.on('data', (data) => this._protocol.recv(data));
 
     eos(socket, () => this._protocol.destroy());
-    this._protocol.open(0, {
-      key: topic,
-      discoveryKey: crypto.discoveryKey(topic)
-    });
   }
 }
 
@@ -137,7 +141,7 @@ class Messenger extends NanoresourcePromise {
       this.emit('peer-added', { initiator: peer.initiator, sessionKey: peer.sessionKey, peerId: peer.id });
     });
 
-    const onBroadcast = message => this.emit('peer-message', message);
+    const onBroadcast = (ch, message) => this.emit('peer-message', ch, message);
     peer.on('message', onBroadcast);
 
     eos(socket, () => {
@@ -152,6 +156,16 @@ class Messenger extends NanoresourcePromise {
 
   broadcast (message, options) {
     return this._broadcast.publish(packetCodec.encode(message), options);
+  }
+
+  send (id, message) {
+    const peer = this.peers.find(p => p.remotePublicKey.toString('hex') === id);
+
+    if (!peer) {
+      return false;
+    }
+
+    return peer.send(packetCodec.encode(message));
   }
 
   async _open () {
@@ -170,13 +184,17 @@ class Messenger extends NanoresourcePromise {
   _middleware () {
     return {
       // send must be async
-      send: async (packet, node) => node.send(packet),
+      send: async (packet, node) => node.broadcast(packet),
       subscribe: (onData) => {
-        const onMessage = message => {
+        const onMessage = (ch, message) => {
           try {
-            const response = onData(message);
-            if (response && response.data) {
-              this.emit('message', packetCodec.decode(response.data));
+            if (ch === BROADCAST_CHANNEL) {
+              const response = onData(message);
+              if (response && response.data) {
+                this.emit('message', packetCodec.decode(response.data));
+              }
+            } else {
+              this.emit('message', packetCodec.decode(message));
             }
           } catch (err) {}
         };
