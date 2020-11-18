@@ -1,5 +1,12 @@
 # Changelog
 
+### [1.0.1](https://www.github.com/dxos/signal/compare/v1.0.0...v1.0.1) (2020-11-18)
+
+
+### Bug Fixes
+
+* lockfile linting ([8e027fc](https://www.github.com/dxos/signal/commit/8e027fc6422c8791013a7a1d260bafcf74127a1a))
+
 ## 1.0.0 (2020-11-18)
 
 
