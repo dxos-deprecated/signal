@@ -1,6 +1,6 @@
 {
   "name": "@dxos/signal",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "DxOS signal server.",
   "homepage": "https://github.com/dxos/signal#readme",
   "bugs": {
