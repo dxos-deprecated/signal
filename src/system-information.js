@@ -57,6 +57,7 @@ const getSystemInfo = async () => {
   const cpu = await si.cpu();
   const memory = await si.mem();
   const device = await si.system();
+  const hostname = os.hostname();
 
   return {
     cpu: pick(cpu, 'brand', 'cores', 'manufacturer', 'vendor', 'speed'),
@@ -71,6 +72,7 @@ const getSystemInfo = async () => {
     device: pick(device, 'model', 'serial', 'version'),
 
     network: {
+      hostname,
       addresses
     },
 

@@ -100,6 +100,7 @@ exports.StatusService = {
         }
 
         type NetworkInfo {
+          hostname: String!
           addresses: [String]!
         }
 
