@@ -1,0 +1,44 @@
+on:
+  push:
+    branches:
+      - main
+name: main - release-please
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dxos/release-please-action@v0.0.100
+        id: release
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          release-type: node
+          package-name: '@dxos/signal'
+      # The logic below handles the npm publication:
+      - uses: actions/checkout@v2
+        # these if statements ensure that a publication only occurs when
+        # a new release is created:
+        if: ${{ steps.release.outputs.release_created }}
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12
+          registry-url: 'https://registry.npmjs.org'
+        if: ${{ steps.release.outputs.release_created }}
+      - name: NPM Publish
+        run: |
+          git config --global user.email "npm@dxos.network"
+          git config --global user.name "DXOS"
+          yarn
+          yarn lint:lockfile
+          yarn build
+          yarn lint
+          yarn test
+          git reset --hard
+          npm version `echo "${{ steps.release.outputs.tag_name }}" | sed 's/^v//'`-alpha.0
+          git push
+          git tag -f "${{ steps.release.outputs.tag_name }}"-alpha.0
+          git push --tags -f
+          git push --delete origin "${{ steps.release.outputs.tag_name }}"
+          npm publish --tag alpha
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        if: ${{ steps.release.outputs.release_created }}
