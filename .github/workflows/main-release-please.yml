@@ -29,7 +29,6 @@ jobs:
           git config --global user.name "DXOS"
           yarn
           yarn lint:lockfile
-          yarn build
           yarn lint
           yarn test
           git reset --hard

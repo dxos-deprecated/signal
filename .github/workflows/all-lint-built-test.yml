@@ -23,9 +23,7 @@ jobs:
     - run: yarn install --frozen-lockfile
     - run: yarn lint:lockfile
     - run: yarn lint
-    - run: yarn build
     - run: yarn test
-    - run: yarn coverage
     - uses: romeovs/lcov-reporter-action@v0.2.16
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
