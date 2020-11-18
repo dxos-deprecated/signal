@@ -1,5 +1,12 @@
 # Changelog
 
+### [1.0.2](https://www.github.com/dxos/signal/compare/v1.0.1...v1.0.2) (2020-11-18)
+
+
+### Bug Fixes
+
+* build ([1183cfe](https://www.github.com/dxos/signal/commit/1183cfe0bdcd4c364c5e08ebc180df066b701baf))
+
 ### [1.0.1](https://www.github.com/dxos/signal/compare/v1.0.0...v1.0.1) (2020-11-18)
 
 
