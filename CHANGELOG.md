@@ -1,5 +1,12 @@
 # Changelog
 
+### [1.0.3](https://www.github.com/dxos/signal/compare/v1.0.2...v1.0.3) (2020-11-19)
+
+
+### Bug Fixes
+
+* make hostname optional ([dc88cef](https://www.github.com/dxos/signal/commit/dc88cef05a82483e78aaf854d6b7f9c3843ce66b))
+
 ### [1.0.2](https://www.github.com/dxos/signal/compare/v1.0.1...v1.0.2) (2020-11-18)
 
 
