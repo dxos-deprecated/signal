@@ -100,7 +100,7 @@ const getSystemInfo = async () => {
  * https://www.npmjs.com/package/systeminformation
  */
 const getServiceInfo = async () => {
-  const command = 'wire';
+  const command = 'dx';
   const args = ['service', '--json'];
 
   const child = spawnSync(command, args, { encoding: 'utf8' });
