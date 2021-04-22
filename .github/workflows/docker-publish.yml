@@ -1,9 +1,7 @@
 name: Publish DXOS Signal Service container to GitHub Registry
 
 on:
-  push:
-    branches:
-      - egorgripasov/docker
+  workflow_dispatch
 
 jobs:
   # Push image to GitHub Packages.
