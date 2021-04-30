@@ -1,5 +1,12 @@
 # Changelog
 
+### [1.0.4](https://www.github.com/dxos/signal/compare/v1.0.3...v1.0.4) (2021-04-30)
+
+
+### Bug Fixes
+
+* add ice port to dockerfile. ([e180237](https://www.github.com/dxos/signal/commit/e18023758e621337df5693e5ca63967b6c9fa601))
+
 ### [1.0.3](https://www.github.com/dxos/signal/compare/v1.0.2...v1.0.3) (2020-11-19)
 
 
