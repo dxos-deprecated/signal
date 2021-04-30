@@ -10,6 +10,6 @@ RUN apk --update add --no-cache python alpine-sdk libtool autoconf automake
 RUN echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> /root/.npmrc
 RUN npm install --global --unsafe-perm @dxos/signal
 
-EXPOSE 4000
+EXPOSE 3478 4000
 
 CMD ["signal"]
